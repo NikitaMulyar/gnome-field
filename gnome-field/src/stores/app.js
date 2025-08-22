@@ -80,12 +80,15 @@ export class Field {
     this.tiles = tiles;
     this.portals = portals;
     this.bombs = [];
+    this.target = {};
     this.availabilityMap = new Array(width * height).fill(false);
     this.targetReached = false;
 
     for (let i = 0; i < width * height; i++) {
       if (this.tiles[i].type == TileTypes.Bomb)
         this.bombs.push({ i: Math.floor(i / width), j: i % width });
+      if (this.tiles[i].type == TileTypes.Target)
+        this.target = { i: Math.floor(i / width), j: i % width };
     }
   }
 
@@ -586,6 +589,9 @@ export const useAppStore = defineStore("app", {
     },
     getJournal() {
       return this.journal;
+    },
+    getTarget() {
+      return this.field.target;
     },
     initDrill() {
       if (this.drillInitialized) return;

@@ -47,7 +47,7 @@ export default defineComponent({
         mj == this.store.getWidth() + 1
       )
         return "transparent";
-      if (this.store.mouseI == i || this.store.mouseJ == j) return "#950985";
+      if (this.store.mouseI == i || this.store.mouseJ == j) return "#018a0a";
       return "transparent";
     },
   },
@@ -65,7 +65,7 @@ export default defineComponent({
 <style scoped>
 .border-tile {
   background-color: v-bind("color");
-  border: solid 1px #950985;
+  border: solid 1px #018a0a;
   aspect-ratio: 1;
   width: 100%;
   text-align: center;

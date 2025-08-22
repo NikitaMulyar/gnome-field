@@ -52,6 +52,6 @@ export default defineComponent({
 
 <style scoped>
 .video-wrapper {
-  border: solid 3px #f700ef;
+  border: solid 3px #00f704;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div style="
-      border: 2px solid #ff01ea;
+      border: 2px solid #01ff12;
       height: 93vh;
       padding: 1em;
       font-family: monospace;
@@ -11,11 +11,11 @@
       <v-btn @click="store.initDrill()" variant="outlined" style="margin: 1em">запустить бур!</v-btn>
       <br />
     </div> -->
-    <span>Прогрызть клетку: 1 уголь</span>
+    <span>Прогрызть клетку: <br /> 1 Drôle de blague</span>
     <br />
     <span>Проедено клеток: {{ store.getSteps() }}</span>
     <br />
-    <span>Потрачено угля: {{ store.getCreditsSpent() }}</span>
+    <span>Принято Drôle de blague: {{ store.getCreditsSpent() }}</span>
     <br />
     <br />
     <!-- <div v-if="store.getTimeToShutdown() == 0">

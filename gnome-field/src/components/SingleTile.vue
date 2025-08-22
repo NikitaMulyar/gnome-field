@@ -46,10 +46,17 @@ export default defineComponent({
       const visibility = this.store.getTile(this.i, this.j).visibility;
       const availability = this.store.isAvailable(this.i, this.j);
 
+      const target = this.store.getTarget();
+      let distToTarget = ((this.i - target.i) ** 2 + (this.j - target.j) ** 2) ** 0.5;
+      if (distToTarget > 10) distToTarget = 10000;
+      const normDistToTarget = Math.min(1 - (distToTarget / 10), 0.5);
+
+      let closedColor = `rgb(${normDistToTarget * 200}, ${normDistToTarget * 255}, ${normDistToTarget * 200})`;
+
       let color;
       if (visibility == TileVisibility.Scanned)
         color = availability ? "#ff00ff" : "#2e002e";
-      else color = availability ? "#7a276d" : "#2a2a2a";
+      else color = availability ? "#277a33" : closedColor;
 
       // Highlight the tile if it is adjacent to the mouse with a same color but brighter
       if (this.i == this.store.mouseI - 1 || this.j == this.store.mouseJ - 1)
@@ -60,7 +67,7 @@ export default defineComponent({
     borderColor() {
       const visibility = this.store.getTile(this.i, this.j).visibility;
       const color =
-        visibility == TileVisibility.Scanned ? "#ff00ff" : "#ff01ea";
+        visibility == TileVisibility.Scanned ? "#ff00ff" : "#01ff12";
       if (
         (this.i == this.store.mouseI - 1 || this.j == this.store.mouseJ - 1) &&
         visibility == TileVisibility.Opened

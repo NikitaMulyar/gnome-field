@@ -3,7 +3,7 @@
     <v-card style="
         font-family: monospace;
         background-color: background;
-        border: solid 2px #ff00fb;
+        border: solid 2px #00cc00;
       " elevation="24">
       <div v-if="!store.getShowPrizeVideo()">
         <v-card-title>
@@ -27,7 +27,7 @@
         </div>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn @click="store.finishGame(false)" color="#ff00fb">
+          <v-btn @click="store.finishGame(false)" color="#00ff00">
             <v-icon>mdi-close</v-icon>
           </v-btn>
           <v-spacer></v-spacer>
