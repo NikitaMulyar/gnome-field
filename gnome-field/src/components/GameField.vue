@@ -2,7 +2,7 @@
   <div
     class="game-field"
     :style="{ aspectRatio: `${store.getWidth()} / ${store.getHeight()}` }"
-    >
+  >
     <AnimatedMapLayer />
     <ExplosionTile
       v-for="bomb in store.getBombs()"

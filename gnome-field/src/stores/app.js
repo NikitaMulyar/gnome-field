@@ -132,10 +132,10 @@ export class Field {
       const data = await response.json();
       const tiles = data.tiles.map((tile) => {
         let newTile = new Tile(tile.type, tile.walls);
-        newTile.setVisibility(1);
+        newTile.setVisibility(TileVisibility.Closed);
         return newTile;
       });
-      const portals = data.portals.map(
+      const portals = (data.portals ?? []).map(
         (portal) => new Portal(portal.entrance, portal.exit)
       );
       return new Field(data.width, data.height, tiles, portals);
@@ -381,6 +381,8 @@ export class Field {
     const entrance_tile_index = this.tiles.findIndex(
       (tile) => tile.type == TileTypes.Entrance
     );
+    if (entrance_tile_index == -1) return;
+
     this.tiles[entrance_tile_index].setVisibility(TileVisibility.Opened);
 
     const [i, j] = this.index2d(entrance_tile_index);
@@ -406,6 +408,7 @@ export class Field {
 
         const tile = this.tiles[this.index(tileI, tileJ)];
         tile.setVisibility(TileVisibility.Opened);
+        if (tile.type == TileTypes.Target) this.targetReached = true;
         affectedTiles.push({ i: tileI, j: tileJ });
       }
     }
@@ -433,6 +436,7 @@ export class Field {
     const portal = this.portals.find((portal) =>
       portal.entrance_tiles.includes(this.index(i, j))
     );
+    if (!portal) return;
 
     const exit_is_opened = portal.exit_tiles.some((exit_tile) =>
       this.tiles[exit_tile].isOpened()
@@ -476,6 +480,8 @@ export class Field {
     const portal = this.portals.find((portal) =>
       portal.exit_tiles.includes(this.index(i, j))
     );
+    if (!portal) return;
+
     for (let exit_tile of portal.exit_tiles)
       this.open(...this.index2d(exit_tile));
   }
@@ -494,11 +500,18 @@ export class Field {
   handleMole(i, j) {
     for (let h_offset = -3; h_offset <= 3; h_offset++) {
       for (let v_offset = -3; v_offset <= 3; v_offset++) {
-        if (this.get(i + v_offset, j + h_offset).isClosed()) {
-          this.tiles[this.index(i + v_offset, j + h_offset)].setVisibility(
-            TileVisibility.Scanned
-          );
-        }
+        const tileI = i + v_offset;
+        const tileJ = j + h_offset;
+        if (
+          tileI < 0 ||
+          tileI >= this.height ||
+          tileJ < 0 ||
+          tileJ >= this.width
+        )
+          continue;
+
+        const tile = this.tiles[this.index(tileI, tileJ)];
+        if (tile.isClosed()) tile.setVisibility(TileVisibility.Scanned);
       }
     }
   }
@@ -521,7 +534,6 @@ export const useAppStore = defineStore("app", {
     creditsSpent: 0,
     journal: [],
     drillInitialized: false,
-    targetReached: false,
     ventCountdownDate: null,
     timeToVentOpen: 0,
     showPrizeVideo: false,
