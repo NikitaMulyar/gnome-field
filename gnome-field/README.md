@@ -2,7 +2,21 @@
 
 Vue/Vuetify-приложение самой игры. Оно загружает карту, открывает клетки по правилам игры, считает шаги/стоимость, показывает журнал, цель и призовое видео.
 
-## Запуск
+## Запуск через Docker
+
+Из папки `gnome-field`:
+
+```bash
+docker compose up --build
+```
+
+Или из корня `C:\NotGnomes`, чтобы поднять игру и редактор вместе:
+
+```bash
+docker compose up --build
+```
+
+## Запуск без Docker
 
 ```bash
 yarn install
@@ -24,11 +38,6 @@ base: process.env.VITE_BASE_PATH ?? "/"
 http://localhost:3000/
 ```
 
-Из корня `C:\NotGnomes` можно запустить игру и редактор вместе:
-
-```powershell
-.\start-local.ps1
-```
 
 ## Команды
 
@@ -203,3 +212,4 @@ prize-lmsh-2025.mp4
 3. Копирует `index.html` в `404.html`.
 4. Инициализирует временный git-репозиторий в `dist/`.
 5. Пушит сборку в `gh-pages`.
+

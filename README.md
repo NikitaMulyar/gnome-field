@@ -6,14 +6,16 @@
 
 ```text
 gnome-field/
-  README.md              # этот файл: общая точка входа
-  gnome-field/           # реальное Vue/Vuetify-приложение
+  docker-compose.yml       # запуск игры отдельно
+  README.md                # этот файл: общая точка входа
+  gnome-field/             # реальное Vue/Vuetify-приложение
+    Dockerfile
     src/
     public/
     package.json
 ```
 
-Основная документация по запуску и коду лежит в [gnome-field/README.md](gnome-field/README.md).
+Основная документация по коду лежит в [gnome-field/README.md](gnome-field/README.md).
 
 ## Что здесь происходит
 
@@ -26,12 +28,12 @@ gnome-field/
 
 Если заменить только JSON, кликабельная логика изменится, но картинка останется старой. Если заменить только PNG, поле будет выглядеть иначе, но логика кликов останется старой. Почти всегда обновлять нужно оба файла.
 
-## Быстрый запуск
+## Запуск через Docker
 
-Из общей папки `C:\NotGnomes` удобнее всего поднять сразу игру и редактор:
+Из этой папки можно поднять только игру:
 
-```powershell
-.\start-local.ps1
+```bash
+docker compose up --build
 ```
 
 Игра откроется здесь:
@@ -40,7 +42,13 @@ gnome-field/
 http://localhost:3000/
 ```
 
-Если нужно запустить только игру:
+Из корня `C:\NotGnomes` можно поднять сразу игру и редактор:
+
+```bash
+docker compose up --build
+```
+
+## Запуск без Docker
 
 ```bash
 cd gnome-field
@@ -59,18 +67,18 @@ yarn dev
 
 3. Из корня `C:\NotGnomes` запустить:
 
-   ```powershell
-   .\sync-map.ps1
+   ```bash
+   docker compose --profile tools run --rm map-sync
    ```
 
-4. Скрипт обновит:
+4. Сервис обновит:
 
    ```text
    gnome-field/gnome-field/public/map.json
    gnome-field/gnome-field/src/assets/map.png
    ```
 
-5. Запустить игру и проверить, что клики совпадают с картинкой.
+5. Открыть игру и проверить, что клики совпадают с картинкой.
 
 ## Деплой
 

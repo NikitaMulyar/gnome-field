@@ -1,0 +1,16 @@
+﻿services:
+  gnome-field:
+    build:
+      context: ./gnome-field
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_BASE_PATH: /
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ./gnome-field:/app
+      - gnome_field_node_modules:/app/node_modules
+    command: yarn dev --host 0.0.0.0
+
+volumes:
+  gnome_field_node_modules:
