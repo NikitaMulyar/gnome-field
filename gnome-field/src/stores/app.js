@@ -1,4 +1,4 @@
-// Utilities
+﻿// Utilities
 import { defineStore } from "pinia";
 
 export const TileTypes = {
@@ -514,7 +514,7 @@ export const useAppStore = defineStore("app", {
     async loadMap() {
       // this.field = await Field.fromCSV(32, 24, "/map.csv");
       // this.field.exportToJson("map.json");
-      this.field = await Field.fromJSON("/gnome-field/map.json");
+      this.field = await Field.fromJSON(`${import.meta.env.BASE_URL}map.json`);
     },
     tapTile(i, j) {
       const oldTileType = this.field.get(i, j).type;
@@ -531,14 +531,14 @@ export const useAppStore = defineStore("app", {
 
         let journalMsg = null;
         if (oldTileType == TileTypes.Bomb)
-          journalMsg = "Вы наткнулись на просроченную агушу и взорвались!";
+          journalMsg = "Р’С‹ РЅР°С‚РєРЅСѓР»РёСЃСЊ РЅР° РїСЂРѕСЃСЂРѕС‡РµРЅРЅСѓСЋ Р°РіСѓС€Сѓ Рё РІР·РѕСЂРІР°Р»РёСЃСЊ!";
         else if (oldTileType == TileTypes.PortalEntrance)
-          journalMsg = "Вы прошли через водоворот!";
+          journalMsg = "Р’С‹ РїСЂРѕС€Р»Рё С‡РµСЂРµР· РІРѕРґРѕРІРѕСЂРѕС‚!";
         else if (oldTileType == TileTypes.Mole)
           journalMsg =
-            "Вы наткнулись на мышку, показывающую область вокруг!";
+            "Р’С‹ РЅР°С‚РєРЅСѓР»РёСЃСЊ РЅР° РјС‹С€РєСѓ, РїРѕРєР°Р·С‹РІР°СЋС‰СѓСЋ РѕР±Р»Р°СЃС‚СЊ РІРѕРєСЂСѓРі!";
         else if (oldTileType == TileTypes.Target)
-          journalMsg = "Вы достигли цели!";
+          journalMsg = "Р’С‹ РґРѕСЃС‚РёРіР»Рё С†РµР»Рё!";
 
         this.journal.push({
           tile: { i, j },
@@ -648,3 +648,4 @@ export const useAppStore = defineStore("app", {
     },
   },
 });
+

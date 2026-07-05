@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="video-wrapper" style="width: 100%; height: 100%">
     <video ref="videoPlayer" class="video-js vjs-big-play-centered vjs-default-skin"
       style="width: 100%; height: 100%"></video>
@@ -23,7 +23,7 @@ export default defineComponent({
       preload: "auto",
       sources: [
         {
-          src: "/gnome-field/prize.mp4",
+          src: `${import.meta.env.BASE_URL}prize.mp4`,
           type: "video/mp4",
         },
       ],
@@ -55,3 +55,4 @@ export default defineComponent({
   border: solid 3px #00f704;
 }
 </style>
+

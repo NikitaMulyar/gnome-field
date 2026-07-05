@@ -1,4 +1,4 @@
-// Plugins
+﻿// Plugins
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
 import Fonts from "unplugin-fonts/vite";
@@ -10,6 +10,8 @@ import Vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 // Utilities
 import { defineConfig } from "vite";
 import { fileURLToPath, URL } from "node:url";
+
+const base = process.env.VITE_BASE_PATH ?? "/";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -55,5 +57,6 @@ export default defineConfig({
   server: {
     port: 3000,
   },
-  base: "/gnome-field/",
+  base,
 });
+

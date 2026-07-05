@@ -1,79 +1,205 @@
-# Vuetify (Default)
+﻿# gnome-field app
 
-This is the official scaffolding tool for Vuetify, designed to give you a head start in building your new Vuetify application. It sets up a base template with all the necessary configurations and standard directory structure, enabling you to begin development without the hassle of setting up the project from scratch.
+Vue/Vuetify-приложение самой игры. Оно загружает карту, открывает клетки по правилам игры, считает шаги/стоимость, показывает журнал, цель и призовое видео.
 
-## ❗️ Important Links
-
-- 📄 [Docs](https://vuetifyjs.com/)
-- 🚨 [Issues](https://issues.vuetifyjs.com/)
-- 🏬 [Store](https://store.vuetifyjs.com/)
-- 🎮 [Playground](https://play.vuetifyjs.com/)
-- 💬 [Discord](https://community.vuetifyjs.com)
-
-## 💿 Install
-
-Set up your project using your preferred package manager. Use the corresponding command to install the dependencies:
-
-| Package Manager                                                | Command        |
-|---------------------------------------------------------------|----------------|
-| [yarn](https://yarnpkg.com/getting-started)                   | `yarn install` |
-| [npm](https://docs.npmjs.com/cli/v7/commands/npm-install)     | `npm install`  |
-| [pnpm](https://pnpm.io/installation)                          | `pnpm install` |
-| [bun](https://bun.sh/#getting-started)                        | `bun install`  |
-
-After completing the installation, your environment is ready for Vuetify development.
-
-## ✨ Features
-
-- 🖼️ **Optimized Front-End Stack**: Leverage the latest Vue 3 and Vuetify 3 for a modern, reactive UI development experience. [Vue 3](https://v3.vuejs.org/) | [Vuetify 3](https://vuetifyjs.com/en/)
-- 🗃️ **State Management**: Integrated with [Pinia](https://pinia.vuejs.org/), the intuitive, modular state management solution for Vue.
-- 🚦 **Routing and Layouts**: Utilizes Vue Router for SPA navigation and vite-plugin-vue-layouts for organizing Vue file layouts. [Vue Router](https://router.vuejs.org/) | [vite-plugin-vue-layouts](https://github.com/JohnCampionJr/vite-plugin-vue-layouts)
-- ⚡ **Next-Gen Tooling**: Powered by Vite, experience fast cold starts and instant HMR (Hot Module Replacement). [Vite](https://vitejs.dev/)
-- 🧩 **Automated Component Importing**: Streamline your workflow with unplugin-vue-components, automatically importing components as you use them. [unplugin-vue-components](https://github.com/antfu/unplugin-vue-components)
-
-These features are curated to provide a seamless development experience from setup to deployment, ensuring that your Vuetify application is both powerful and maintainable.
-
-## 💡 Usage
-
-This section covers how to start the development server and build your project for production.
-
-### Starting the Development Server
-
-To start the development server with hot-reload, run the following command. The server will be accessible at [http://localhost:3000](http://localhost:3000):
+## Запуск
 
 ```bash
+yarn install
 yarn dev
 ```
 
-(Repeat for npm, pnpm, and bun with respective commands.)
+Локальный порт задан в `vite.config.mjs`:
 
-> Add NODE_OPTIONS='--no-warnings' to suppress the JSON import warnings that happen as part of the Vuetify import mapping. If you are on Node [v21.3.0](https://nodejs.org/en/blog/release/v21.3.0) or higher, you can change this to NODE_OPTIONS='--disable-warning=5401'. If you don't mind the warning, you can remove this from your package.json dev script.
-
-### Building for Production
-
-To build your project for production, use:
-
-```bash
-yarn build
+```js
+server: {
+  port: 3000
+},
+base: process.env.VITE_BASE_PATH ?? "/"
 ```
 
-(Repeat for npm, pnpm, and bun with respective commands.)
+Локальный адрес:
 
-Once the build process is completed, your application will be ready for deployment in a production environment.
+```text
+http://localhost:3000/
+```
 
-## 💪 Support Vuetify Development
+Из корня `C:\NotGnomes` можно запустить игру и редактор вместе:
 
-This project is built with [Vuetify](https://vuetifyjs.com/en/), a UI Library with a comprehensive collection of Vue components. Vuetify is an MIT licensed Open Source project that has been made possible due to the generous contributions by our [sponsors and backers](https://vuetifyjs.com/introduction/sponsors-and-backers/). If you are interested in supporting this project, please consider:
+```powershell
+.\start-local.ps1
+```
 
-- [Requesting Enterprise Support](https://support.vuetifyjs.com/)
-- [Sponsoring John on Github](https://github.com/users/johnleider/sponsorship)
-- [Sponsoring Kael on Github](https://github.com/users/kaelwd/sponsorship)
-- [Supporting the team on Open Collective](https://opencollective.com/vuetify)
-- [Becoming a sponsor on Patreon](https://www.patreon.com/vuetify)
-- [Becoming a subscriber on Tidelift](https://tidelift.com/subscription/npm/vuetify)
-- [Making a one-time donation with Paypal](https://paypal.me/vuetify)
+## Команды
 
-## 📑 License
-[MIT](http://opensource.org/licenses/MIT)
+```bash
+yarn dev      # dev-сервер Vite
+yarn build    # production-сборка в dist/
+yarn preview  # просмотр production-сборки
+yarn lint     # ESLint с автоисправлениями
+```
 
-Copyright (c) 2016-present Vuetify, LLC
+## Важные файлы
+
+```text
+public/map.json                  # логика текущей карты
+public/test-map.json             # маленькая тестовая карта
+public/prize.mp4                 # видео, которое показывается после цели
+src/assets/map.png               # фоновая картинка текущей карты
+src/assets/explosion.png         # картинка взрыва
+src/stores/app.js                # основная модель игры и Pinia store
+src/pages/index.vue              # главный экран
+src/components/GameField.vue     # фон карты + сетка + взрывы
+src/components/TileGrid.vue      # CSS-grid по размеру карты
+src/components/SingleTile.vue    # интерактивная клетка
+src/components/StatsColumn.vue   # счетчики и журнал
+src/components/TargetDialog.vue  # окно при достижении цели
+src/components/PrizeVideoPlayer.vue
+```
+
+## Как приложение стартует
+
+`src/main.js` поднимает Vue-приложение и подключает плагины. Главная страница `src/pages/index.vue` собирает экран из двух частей:
+
+- слева поле с рамкой, фоном `map.png` и кликабельной сеткой;
+- справа колонка статистики и журнала.
+
+Карта загружается в `src/stores/app.js`:
+
+```js
+this.field = await Field.fromJSON(`${import.meta.env.BASE_URL}map.json`);
+```
+
+`import.meta.env.BASE_URL` берется из Vite. Локально это `/`, а при деплое на GitHub Pages `deploy.sh` передает `/gnome-field/`.
+
+## Модель карты
+
+Карта приходит из `public/map.json`:
+
+```json
+{
+  "width": 32,
+  "height": 24,
+  "portals": [],
+  "tiles": [
+    {
+      "type": 0,
+      "walls": [false, false, false, false]
+    }
+  ]
+}
+```
+
+Правила индексации:
+
+- `tiles` - плоский массив длиной `width * height`.
+- `index = row * width + column`.
+- `walls` хранит стены в порядке `[up, right, down, left]`.
+
+## Типы клеток
+
+Типы описаны в `TileTypes` внутри `src/stores/app.js`.
+
+| Код | Константа | Поведение |
+| --- | --- | --- |
+| `0` | `Water` | открывается волной вместе с соседней водой/песком |
+| `1` | `Stone` | обычная клетка |
+| `2` | `Entrance` | стартовая клетка, открывается при `initDrill()` |
+| `3` | `Cliff` | особая клетка-препятствие |
+| `4` | `Bomb` | при открытии вызывает взрыв 3x3 |
+| `5` | `Sand` | участвует в волновом открытии, но может оставаться только раскрытой |
+| `6` | `Mole` | помечает область 7x7 как просканированную |
+| `7` | `PortalEntrance` | вход в портал |
+| `8` | `Target` | цель игры |
+| `9` | `PortalExit` | выход из портала |
+
+## Видимость клеток
+
+`TileVisibility` задает состояние клетки:
+
+| Код | Константа | Что означает |
+| --- | --- | --- |
+| `1` | `Closed` | закрыта |
+| `2` | `Scanned` | просканирована кротом/мышкой |
+| `3` | `Revealed` | раскрыта частично |
+| `4` | `Opened` | открыта полностью |
+
+`SingleTile.vue` превращает эти состояния в прозрачность и цвет оверлея. Фоновая картинка поля всегда лежит под сеткой.
+
+## Основные правила открытия
+
+Главная функция - `Field.open(i, j)` в `src/stores/app.js`.
+
+Клетку можно открыть, если рядом уже есть открытая проходимая клетка и между ними нет стены. Исключения и спецэффекты:
+
+- `Entrance` открывается при запуске бура через `initDrill()`.
+- `Water` и `Sand` запускают волновое открытие через `splashOpen()`.
+- `Bomb` вызывает `handleExplosion()` и превращает область 3x3 в `Cliff`.
+- `PortalEntrance` открывает связанный выход и может скрыть часть уже открытой области.
+- `PortalExit` дооткрывает выходной 2x2-блок.
+- `Mole` сканирует область 7x7 вокруг себя.
+- `Target` запускает таймер до показа призового видео.
+
+После каждого клика `tapTile(i, j)` пересчитывает доступность клеток, увеличивает счетчики и добавляет запись в журнал, если поле изменилось.
+
+## Порталы
+
+`public/map.json` хранит порталы так:
+
+```json
+{
+  "entrance": [100, 101, 132, 133],
+  "exit": [300, 301, 332, 333]
+}
+```
+
+Обычно вход и выход - это 2x2-блоки. Редактор карт сам ищет такие блоки и сохраняет массив индексов.
+
+## Призовое видео
+
+`PrizeVideoPlayer.vue` использует `video.js` и грузит:
+
+```js
+`${import.meta.env.BASE_URL}prize.mp4`
+```
+
+Сейчас в `public/` лежит несколько видео:
+
+```text
+prize.mp4
+prize-august-2024.mp4
+prize-kroterra.mp4
+prize-lmsh-2025.mp4
+```
+
+Чтобы заменить активное видео, проще всего заменить `public/prize.mp4` или поменять путь в `PrizeVideoPlayer.vue`.
+
+## Связь с генератором
+
+Игра не генерирует карту сама. Ей нужны готовые файлы:
+
+- `public/map.json` - из `gnome-field-generator/map-editor`.
+- `src/assets/map.png` - из `gnome-field-generator/src/generate.py`.
+
+Если они не соответствуют друг другу, игрок будет кликать по одной карте, а видеть другую.
+
+## Известные проблемы и зоны для доработки
+
+- Часть русских строк в компонентах сейчас выглядит как испорченная кодировка (`Рџ...`). Это нужно чинить отдельной правкой в `.vue` и `app.js`.
+- Путь к карте и призовому видео зависит от `import.meta.env.BASE_URL`; для нестандартного деплоя нужно выставлять `VITE_BASE_PATH`.
+- Автотестов нет, поэтому после изменения `Field.open()` и связанных методов лучше проверять вручную хотя бы маленькую `test-map.json`.
+- Логика игры и UI-состояние находятся в одном большом `src/stores/app.js`; при большой доработке его стоит разделить на модель поля и Pinia store.
+
+## Деплой
+
+```bash
+./deploy.sh
+```
+
+Скрипт:
+
+1. Выполняет `VITE_BASE_PATH=/gnome-field/ yarn build`.
+2. Заходит в `dist/`.
+3. Копирует `index.html` в `404.html`.
+4. Инициализирует временный git-репозиторий в `dist/`.
+5. Пушит сборку в `gh-pages`.
