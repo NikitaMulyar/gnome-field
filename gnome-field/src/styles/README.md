@@ -1,3 +1,5 @@
 # Styles
 
-This directory is for configuring the styles of the application.
+Глобальные настройки стилей Vuetify/Sass.
+
+Большая часть визуала карты и подвала сейчас scoped внутри компонентов `src/pages/index.vue`, `StatsColumn.vue`, `AnimatedMapLayer.vue` и `SingleTile.vue`.

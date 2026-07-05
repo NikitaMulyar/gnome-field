@@ -1,5 +1,5 @@
 # Layouts
 
-Layouts are reusable components that wrap around pages. They are used to provide a consistent look and feel across multiple pages.
+Глобальные layout-компоненты Vue-приложения.
 
-Full documentation for this feature can be found in the Official [vite-plugin-vue-layouts](https://github.com/JohnCampionJr/vite-plugin-vue-layouts) repository.
+Сейчас игра использует один основной layout; визуальная композиция карты находится в `src/pages/index.vue`.

@@ -1,5 +1,12 @@
 # Store
 
-Pinia stores are used to store reactive state and expose actions to mutate it.
+`app.js` содержит игровую модель:
 
-Full documentation for this feature can be found in the Official [Pinia](https://pinia.esm.dev/) repository.
+- загрузка `public/map.json`;
+- типы клеток и стен;
+- правила открытия клеток;
+- вода, сканер, вентиляция и цель;
+- задержанный взрыв банки краски и красное пятно;
+- журнал действий и таймеры.
+
+Перед изменением правил карты проверь `yarn lint` и `yarn build`.
