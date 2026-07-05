@@ -1,25 +1,43 @@
 # Подвалище
 
-Это Vue/Vuetify-приложение игры `gnome-field`. Репозиторий-обертка находится уровнем выше, а рабочий frontend-код лежит здесь.
+Vue/Vuetify-приложение игры `gnome-field`. Оно загружает карту, открывает клетки по правилам игры, считает шаги/стоимость, показывает журнал, цель и призовое видео.
 
-## Запуск
+## Запуск Через Docker
+
+Из корня репозитория:
+
+```bash
+docker compose up --build
+```
+
+Адрес:
+
+```text
+http://127.0.0.1:3000/
+```
+
+## Запуск Без Docker
+
+Из этой папки:
 
 ```bash
 yarn install
 yarn dev
 ```
 
-Адрес разработки:
+Локальный адрес по умолчанию:
 
 ```text
-http://127.0.0.1:3000/gnome-field/
+http://127.0.0.1:3000/
 ```
 
-Если рядом запущен редактор карты или другой Vite-сервер, используй другой порт:
+Для проверки GitHub Pages base path:
 
 ```bash
-yarn dev --port 3001
+VITE_BASE_PATH=/gnome-field/ yarn dev
 ```
+
+Адрес будет `http://127.0.0.1:3000/gnome-field/`.
 
 ## Команды
 
@@ -29,7 +47,24 @@ yarn build
 yarn preview
 ```
 
-`yarn lint` запускает ESLint с автоисправлениями. После него полезно смотреть `git diff`, потому что команда может форматировать файлы.
+`yarn lint` запускает ESLint с автоисправлениями. После него полезно смотреть `git diff`.
+
+## Base Path
+
+`vite.config.mjs` читает:
+
+```js
+const base = process.env.VITE_BASE_PATH ?? "/";
+```
+
+Поэтому карта и призовое видео грузятся через `import.meta.env.BASE_URL`:
+
+```js
+Field.fromJSON(`${import.meta.env.BASE_URL}map.json`);
+`${import.meta.env.BASE_URL}prize.mp4`;
+```
+
+Для Docker используется `/`, для GitHub Pages используется `/gnome-field/`.
 
 ## Карта И Ассеты
 
@@ -44,11 +79,36 @@ yarn preview
 - `src/components/AnimatedMapLayer.vue` - текстуры открытой карты и фанерные стены.
 - `src/components/ExplosionTile.vue` - взрыв банки краски и пятно.
 - `src/components/StatsColumn.vue` - журнал и счетчики.
+- `src/components/PrizeVideoPlayer.vue` - видео приза через `video.js`.
 - `src/assets/map-tiles/art-camp/` - текстуры клеток.
+- `src/assets/map.png` - generated preview текущей карты.
 
-## Правила Карты
+## Формат Карты
 
-Код клетки задается числом в `public/map.json`:
+```json
+{
+  "width": 32,
+  "height": 24,
+  "portals": [
+    {
+      "entrance": [1, 2, 33, 34],
+      "exit": [100, 101, 132, 133]
+    }
+  ],
+  "tiles": [
+    {
+      "type": 0,
+      "walls": [false, false, false, false]
+    }
+  ]
+}
+```
+
+`tiles` - плоский массив длиной `width * height`, индекс клетки: `row * width + column`.
+
+Порядок стен: `up`, `right`, `down`, `left`.
+
+## Типы Клеток
 
 | Код | Значение |
 | --- | --- |
@@ -70,3 +130,25 @@ yarn preview
 - сканер подсвечивает закрытые клетки в радиусе 3;
 - вход/выход вентиляции работают через `portals` в `map.json`;
 - после открытия волшебной коробки запускается таймер приза.
+
+## Призовое Видео
+
+Активное видео: `public/prize.mp4`.
+
+Также в `public/` есть архивные варианты:
+
+```text
+prize-august-2024.mp4
+prize-kroterra.mp4
+prize-lmsh-2025.mp4
+```
+
+Чтобы заменить активное видео, проще всего заменить `public/prize.mp4`.
+
+## Деплой
+
+```bash
+./deploy.sh
+```
+
+Скрипт собирает приложение с `VITE_BASE_PATH=/gnome-field/`, добавляет `404.html` и пушит сборку в `gh-pages`.

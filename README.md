@@ -2,9 +2,38 @@
 
 Игровой фронтенд проекта "Подвалище": десктопная карта подвала, где живокрысик открывает клетки, проходит через вентиляцию, тратит рис и ищет волшебную коробку.
 
-Код приложения лежит в подпапке `gnome-field/`.
+Рабочее Vue/Vuetify-приложение лежит в подпапке `gnome-field/`.
 
-## Быстрый Запуск
+## Структура
+
+```text
+gnome-field/
+  docker-compose.yml
+  README.md
+  gnome-field/
+    Dockerfile
+    public/
+    src/
+    package.json
+```
+
+Основная документация по приложению: [gnome-field/README.md](gnome-field/README.md).
+
+## Запуск Через Docker
+
+```bash
+docker compose up --build
+```
+
+Адрес:
+
+```text
+http://127.0.0.1:3000/
+```
+
+Docker передает `VITE_BASE_PATH=/`, поэтому приложение открывается из корня.
+
+## Запуск Без Docker
 
 ```bash
 cd gnome-field
@@ -12,19 +41,29 @@ yarn install
 yarn dev
 ```
 
-Открывать игру нужно по адресу:
+Адрес по умолчанию:
+
+```text
+http://127.0.0.1:3000/
+```
+
+Если нужно проверить режим GitHub Pages:
+
+```bash
+VITE_BASE_PATH=/gnome-field/ yarn dev
+```
+
+Тогда адрес будет:
 
 ```text
 http://127.0.0.1:3000/gnome-field/
 ```
 
-Если порт `3000` занят:
+Если порт занят:
 
 ```bash
 yarn dev --port 3001
 ```
-
-Тогда адрес будет `http://127.0.0.1:3001/gnome-field/`.
 
 ## Проверки
 
@@ -34,7 +73,18 @@ yarn lint
 yarn build
 ```
 
-`yarn build` сейчас может предупреждать о крупном JS/CSS chunk. Это известное предупреждение Vite/Vuetify, не ошибка сборки.
+`yarn build` может предупреждать о крупных Vite/Vuetify chunks. Это предупреждение, не ошибка сборки.
+
+## Карта И Синхронизация
+
+Игра использует два связанных файла:
+
+- `gnome-field/public/map.json` - логика карты: типы клеток, стены, порталы.
+- `gnome-field/src/assets/map.png` - preview-картинка той же карты.
+
+В текущей версии карта также отрисовывает текстуры из `src/assets/map-tiles/art-camp/` через `AnimatedMapLayer.vue`.
+
+Если обновлять карту из `gnome-field-generator`, важно синхронизировать JSON и preview. В соседнем репозитории есть sync tooling и генератор текстур.
 
 ## Где Что Лежит
 
@@ -65,7 +115,7 @@ yarn build
 
 ## Анимации
 
-В текущей версии в самой карте анимируются только:
+В самой карте анимируются только:
 
 - вода: `water.gif`;
 - сканер: `scanner.gif`;
@@ -73,29 +123,11 @@ yarn build
 
 После взрыва банка оставляет статичное красное пятно `paint-stain.png`.
 
-## Как Менять Текстуры
+## Деплой
 
-Текстуры можно заменить вручную в `gnome-field/src/assets/map-tiles/art-camp/`.
-
-Важно сохранять имена файлов, которые импортирует `AnimatedMapLayer.vue`:
-
-```text
-water.gif
-water.png
-papers.png
-basement-door.png
-bun.png
-paint-can.png
-cardboard.png
-scanner.gif
-scanner.png
-vent-in.png
-magic-box.png
-vent-out.png
-wall-up.png
-wall-right.png
-wall-down.png
-wall-left.png
+```bash
+cd gnome-field
+./deploy.sh
 ```
 
-Если текстуры генерируются скриптом, источник находится в соседнем репозитории `gnome-field-generator`.
+Скрипт собирает приложение с `VITE_BASE_PATH=/gnome-field/`, копирует `index.html` в `404.html` для SPA fallback и пушит `dist/` в `gh-pages`.

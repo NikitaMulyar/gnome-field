@@ -548,7 +548,7 @@ export const useAppStore = defineStore("app", {
     async loadMap() {
       // this.field = await Field.fromCSV(32, 24, "/map.csv");
       // this.field.exportToJson("map.json");
-      this.field = await Field.fromJSON("/gnome-field/map.json");
+      this.field = await Field.fromJSON(`${import.meta.env.BASE_URL}map.json`);
     },
     tapTile(i, j) {
       if (!this.field) return;
