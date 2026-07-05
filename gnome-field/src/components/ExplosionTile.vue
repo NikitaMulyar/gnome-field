@@ -1,20 +1,28 @@
 <template>
   <img
-    src="@/assets/explosion.png"
-    :style="{
-      top: `calc((${i} - 1) / ${store.getHeight()} * 99%)`,
-      left: `calc((${j} - 1) / ${store.getWidth()} * 100%)`,
-      opacity: `${opacity}`,
-      height: `calc(100% / ${store.getHeight() / 3})`,
-    }"
-    style="aspect-ratio: 1; position: absolute; z-index: 5"
+    v-if="store.hasPaintStain(i, j)"
+    :src="paintStain"
+    :style="paintEffectStyle"
+    class="paint-stain"
+    alt=""
+    draggable="false"
+  />
+  <img
+    v-if="explosionVersion"
+    :key="explosionVersion"
+    :src="paintExplosion"
+    :style="paintEffectStyle"
+    class="paint-explosion"
+    alt=""
+    draggable="false"
   />
 </template>
 
 <script>
 import { defineComponent } from "vue";
 import { useAppStore } from "@/stores/app";
-import { watch } from "vue";
+import paintExplosion from "@/assets/paint-explosion.gif";
+import paintStain from "@/assets/paint-stain.png";
 
 export default defineComponent({
   name: "ExplosionTile",
@@ -24,24 +32,38 @@ export default defineComponent({
   },
   setup() {
     const store = useAppStore();
-    return { store };
+    return { paintExplosion, paintStain, store };
   },
-  mounted() {
-    watch(
-      () => this.store.getTile(this.i, this.j).isOpened(),
-      (isOpened) => {
-        if (isOpened && !this.opened) {
-          this.opened = true;
-          setTimeout(() => {
-            this.opacity = 1;
-          }, 3000);
-        }
-      }
-    );
+  computed: {
+    explosionVersion() {
+      return this.store.getPaintExplosionVersion(this.i, this.j);
+    },
+    paintEffectStyle() {
+      return {
+        top: `calc((${this.i} - 1) * 100% / ${this.store.getHeight()})`,
+        left: `calc((${this.j} - 1) * 100% / ${this.store.getWidth()})`,
+        width: `calc(3 * 100% / ${this.store.getWidth()})`,
+        height: `calc(3 * 100% / ${this.store.getHeight()})`,
+      };
+    },
   },
-  data: () => ({
-    opened: false,
-    opacity: 0,
-  }),
 });
 </script>
+
+<style scoped>
+.paint-stain,
+.paint-explosion {
+  position: absolute;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.paint-stain {
+  z-index: 4;
+}
+
+.paint-explosion {
+  z-index: 5;
+}
+</style>
