@@ -36,7 +36,7 @@ export default defineComponent({
           opacity = 0.5;
           break;
         case TileVisibility.Scanned:
-          opacity = availability ? 0.62 : 0.3;
+          opacity = availability ? 0.7 : 0.46;
           break;
         default:
           opacity = 0;
@@ -57,22 +57,17 @@ export default defineComponent({
     color() {
       const visibility = this.store.getTile(this.i, this.j).visibility;
       const availability = this.store.isAvailable(this.i, this.j);
-      const closedColor = "#2a252a";
+      const closedColor = "#151319";
 
       let color;
       if (visibility == TileVisibility.Scanned)
-        color = availability ? "#b05cff" : "#2c2a3e";
-      else color = availability ? "#c79542" : closedColor;
+        color = availability ? "#6c3699" : "#181520";
+      else color = availability ? "#956f32" : closedColor;
 
       return color;
     },
     borderColor() {
-      const visibility = this.store.getTile(this.i, this.j).visibility;
-      const availability = this.store.isAvailable(this.i, this.j);
-      const color = visibility == TileVisibility.Scanned
-        ? (availability ? "#e0c2ff" : "#a997ff")
-        : "#ba9752";
-      return color;
+      return "#ba9752";
     },
   },
   methods: {
@@ -107,31 +102,48 @@ export default defineComponent({
   z-index: 0;
   pointer-events: none;
   background:
-    linear-gradient(135deg, rgba(255, 236, 180, 0.035), rgba(0, 0, 0, 0.16)),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(0, 0, 0, 0.1));
+    linear-gradient(135deg, rgba(255, 236, 180, 0.012), rgba(0, 0, 0, 0.2)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.008), rgba(0, 0, 0, 0.12));
   background-size: 100% 100%;
-  opacity: 0.64;
+  opacity: 0.5;
 }
 
-.tile.available {
+.tile::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    background-color 140ms ease,
+    opacity 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.tile.available:not(.scanned)::after {
+  background: rgba(176, 126, 46, 0.22);
   box-shadow:
-    inset 0 0 0 1px rgba(255, 228, 158, 0.28),
-    inset 0 0 0.6rem rgba(255, 198, 80, 0.16);
+    inset 0 0 0.45rem rgba(210, 160, 67, 0.12);
+  opacity: 1;
 }
 
 .tile.opened {
   box-shadow: none;
 }
 
-.tile.scanned {
+.tile.scanned:not(.available)::after {
+  background: rgba(63, 47, 98, 0.24);
   box-shadow:
-    inset 0 0 0.75rem rgba(130, 111, 246, 0.18);
+    inset 0 0 0.6rem rgba(26, 18, 45, 0.28);
+  opacity: 1;
 }
 
-.tile.scanned.available {
+.tile.scanned.available::after {
+  background: rgba(170, 78, 255, 0.34);
   box-shadow:
-    inset 0 0 0 1px rgba(234, 207, 255, 0.55),
-    inset 0 0 1.1rem rgba(174, 94, 255, 0.52),
-    0 0 0.5rem rgba(168, 86, 255, 0.32);
+    inset 0 0 0.85rem rgba(230, 198, 255, 0.24),
+    0 0 0.35rem rgba(168, 86, 255, 0.16);
+  opacity: 1;
 }
 </style>

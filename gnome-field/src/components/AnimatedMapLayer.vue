@@ -37,7 +37,7 @@ import { useAppStore, WallDirections } from "@/stores/app";
 import basementDoor from "@/assets/map-tiles/art-camp/basement-door.png";
 import bun from "@/assets/map-tiles/art-camp/bun.png";
 import cardboard from "@/assets/map-tiles/art-camp/cardboard.png";
-import magicBox from "@/assets/map-tiles/art-camp/magic-box.png";
+import magicBox from "@/assets/map-tiles/art-camp/magic-box.gif";
 import paintCan from "@/assets/map-tiles/art-camp/paint-can.png";
 import papers from "@/assets/map-tiles/art-camp/papers.png";
 import scanner from "@/assets/map-tiles/art-camp/scanner.gif";
