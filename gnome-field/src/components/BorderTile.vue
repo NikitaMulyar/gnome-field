@@ -45,7 +45,7 @@ export default defineComponent({
 <style scoped>
 .border-tile {
   background-color: v-bind("color");
-  border: solid 1px rgba(216, 170, 96, 0.62);
+  border: solid 1px rgba(173, 136, 77, 0.62);
   aspect-ratio: 1;
   width: 100%;
   text-align: center;

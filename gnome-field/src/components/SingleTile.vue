@@ -23,6 +23,7 @@ export default defineComponent({
   computed: {
     opacity() {
       const visibility = this.store.getTile(this.i, this.j).visibility;
+      const availability = this.store.isAvailable(this.i, this.j);
       let opacity;
       switch (visibility) {
         case TileVisibility.Closed:
@@ -35,7 +36,7 @@ export default defineComponent({
           opacity = 0.5;
           break;
         case TileVisibility.Scanned:
-          opacity = 0.3;
+          opacity = availability ? 0.62 : 0.3;
           break;
         default:
           opacity = 0;
@@ -60,15 +61,17 @@ export default defineComponent({
 
       let color;
       if (visibility == TileVisibility.Scanned)
-        color = availability ? "#856cda" : "#2c2a3e";
+        color = availability ? "#b05cff" : "#2c2a3e";
       else color = availability ? "#c79542" : closedColor;
 
       return color;
     },
     borderColor() {
       const visibility = this.store.getTile(this.i, this.j).visibility;
-      const color =
-        visibility == TileVisibility.Scanned ? "#a997ff" : "#e8bd66";
+      const availability = this.store.isAvailable(this.i, this.j);
+      const color = visibility == TileVisibility.Scanned
+        ? (availability ? "#e0c2ff" : "#a997ff")
+        : "#ba9752";
       return color;
     },
   },
@@ -123,5 +126,12 @@ export default defineComponent({
 .tile.scanned {
   box-shadow:
     inset 0 0 0.75rem rgba(130, 111, 246, 0.18);
+}
+
+.tile.scanned.available {
+  box-shadow:
+    inset 0 0 0 1px rgba(234, 207, 255, 0.55),
+    inset 0 0 1.1rem rgba(174, 94, 255, 0.52),
+    0 0 0.5rem rgba(168, 86, 255, 0.32);
 }
 </style>

@@ -14,6 +14,8 @@
       <img
         :src="tileImage(index - 1)"
         class="tile-image"
+        :class="{ 'tile-image-portal': isPortalTile(index - 1) }"
+        :style="tileImageStyle(index - 1)"
         alt=""
         draggable="false"
       />
@@ -89,9 +91,53 @@ export default defineComponent({
     },
   },
   methods: {
+    portalPart(index) {
+      const [i, j] = this.store.field.index2d(index);
+      const type = this.store.getTile(i, j).type;
+      if (![7, 9].includes(type)) return null;
+
+      const candidates = [
+        [i, j],
+        [i - 1, j],
+        [i, j - 1],
+        [i - 1, j - 1],
+      ];
+
+      for (const [top, left] of candidates) {
+        if (top < 0 || left < 0) continue;
+        if (top + 1 >= this.height || left + 1 >= this.width) continue;
+
+        const isPortalBlock = [
+          [top, left],
+          [top, left + 1],
+          [top + 1, left],
+          [top + 1, left + 1],
+        ].every(([row, column]) => this.store.getTile(row, column).type == type);
+
+        if (isPortalBlock) {
+          return {
+            row: i - top,
+            column: j - left,
+          };
+        }
+      }
+
+      return null;
+    },
+    isPortalTile(index) {
+      return this.portalPart(index) !== null;
+    },
     tileImage(index) {
       const [i, j] = this.store.field.index2d(index);
       return TILE_IMAGES[this.store.getTile(i, j).type] ?? papers;
+    },
+    tileImageStyle(index) {
+      const part = this.portalPart(index);
+      if (!part) return {};
+
+      return {
+        transform: `translate(${-part.column * 50}%, ${-part.row * 50}%)`,
+      };
     },
     wallDirections(index) {
       const [i, j] = this.store.field.index2d(index);
@@ -135,6 +181,13 @@ export default defineComponent({
   height: 100%;
   object-fit: cover;
   user-select: none;
+}
+
+.tile-image-portal {
+  width: 200%;
+  height: 200%;
+  max-width: none;
+  transform-origin: top left;
 }
 
 .wall {
