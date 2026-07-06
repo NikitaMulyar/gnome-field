@@ -56,15 +56,7 @@ export default defineComponent({
     color() {
       const visibility = this.store.getTile(this.i, this.j).visibility;
       const availability = this.store.isAvailable(this.i, this.j);
-
-      const target = this.store.getTarget();
-      let distToTarget = ((this.i - target.i) ** 2 + (this.j - target.j) ** 2) ** 0.5;
-      if (distToTarget > 10) distToTarget = 10000;
-      const normDistToTarget = Math.min(1 - (distToTarget / 10), 0.5);
-
-      let closedColor = `rgb(${42 + normDistToTarget * 92}, ${
-        37 + normDistToTarget * 78
-      }, ${42 + normDistToTarget * 86})`;
+      const closedColor = "#2a252a";
 
       let color;
       if (visibility == TileVisibility.Scanned)

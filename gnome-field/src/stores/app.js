@@ -125,23 +125,20 @@ export class Field {
   }
 
   static async fromJSON(json_filename) {
-    try {
-      const response = await fetch(json_filename);
-      if (!response.ok) throw new Error("Network response was not ok");
+    const response = await fetch(json_filename);
+    if (!response.ok)
+      throw new Error(`Network response was not ok: ${response.status}`);
 
-      const data = await response.json();
-      const tiles = data.tiles.map((tile) => {
-        let newTile = new Tile(tile.type, tile.walls);
-        newTile.setVisibility(TileVisibility.Closed);
-        return newTile;
-      });
-      const portals = (data.portals ?? []).map(
-        (portal) => new Portal(portal.entrance, portal.exit)
-      );
-      return new Field(data.width, data.height, tiles, portals);
-    } catch (error) {
-      console.error("Error loading the map:", error);
-    }
+    const data = await response.json();
+    const tiles = data.tiles.map((tile) => {
+      let newTile = new Tile(tile.type, tile.walls);
+      newTile.setVisibility(TileVisibility.Closed);
+      return newTile;
+    });
+    const portals = (data.portals ?? []).map(
+      (portal) => new Portal(portal.entrance, portal.exit)
+    );
+    return new Field(data.width, data.height, tiles, portals);
   }
 
   exportToJson(filename) {
@@ -541,6 +538,7 @@ export const useAppStore = defineStore("app", {
     pendingPaintExplosions: {},
     activePaintExplosions: {},
     paintStains: {},
+    mapLoadError: "",
     shutdownIntervalId: null,
     ventIntervalId: null,
   }),
@@ -548,7 +546,25 @@ export const useAppStore = defineStore("app", {
     async loadMap() {
       // this.field = await Field.fromCSV(32, 24, "/map.csv");
       // this.field.exportToJson("map.json");
-      this.field = await Field.fromJSON(`${import.meta.env.BASE_URL}map.json`);
+      this.mapLoadError = "";
+
+      const primaryMapUrl = `${import.meta.env.BASE_URL}map.json`;
+      const mapUrls = [primaryMapUrl];
+      if (primaryMapUrl != "/map.json") mapUrls.push("/map.json");
+
+      let lastError = null;
+      for (const mapUrl of mapUrls) {
+        try {
+          this.field = await Field.fromJSON(mapUrl);
+          return;
+        } catch (error) {
+          lastError = error;
+          console.error(`Error loading the map from ${mapUrl}:`, error);
+        }
+      }
+
+      this.field = null;
+      this.mapLoadError = lastError?.message || "Unknown map loading error";
     },
     tapTile(i, j) {
       if (!this.field) return;
@@ -755,6 +771,9 @@ export const useAppStore = defineStore("app", {
     },
     getFinished() {
       return this.finished;
+    },
+    getMapLoadError() {
+      return this.mapLoadError;
     },
     fastForwardVent() {
       const now = new Date().getTime();

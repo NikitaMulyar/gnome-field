@@ -32,7 +32,22 @@
     </div>
   </v-container>
   <v-container v-else fluid fill-height class="loading-page">
-    <div class="loading-panel">Загрузка карты...</div>
+    <div class="loading-panel">
+      <template v-if="store.getMapLoadError()">
+        <div class="loading-title">Карта не загрузилась</div>
+        <div class="loading-error">{{ store.getMapLoadError() }}</div>
+        <v-btn
+          class="loading-retry"
+          color="#d49b2a"
+          size="small"
+          variant="tonal"
+          @click="store.loadMap()"
+        >
+          Повторить
+        </v-btn>
+      </template>
+      <template v-else>Загрузка карты...</template>
+    </div>
   </v-container>
   <TargetDialog v-if="store.field" />
 </template>
@@ -203,6 +218,24 @@ export default defineComponent({
     linear-gradient(rgba(255, 255, 255, 0.055), rgba(0, 0, 0, 0.08)),
     #191720;
   font-family: monospace;
+}
+
+.loading-title {
+  margin-bottom: 0.45rem;
+  color: #f0bf72;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.loading-error {
+  max-width: 30rem;
+  color: #d8c59d;
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.loading-retry {
+  margin-top: 0.8rem;
 }
 
 @keyframes basement-breath {
