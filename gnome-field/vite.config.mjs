@@ -1,4 +1,4 @@
-﻿// Plugins
+// Plugins
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
 import Fonts from "unplugin-fonts/vite";
@@ -59,4 +59,3 @@ export default defineConfig({
   },
   base,
 });
-

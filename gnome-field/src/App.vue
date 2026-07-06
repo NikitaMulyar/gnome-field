@@ -21,7 +21,28 @@ export default defineComponent({
 </script>
 
 <style>
+:root {
+  --basement-bg: #111217;
+  --basement-panel: #171821;
+  --craft-gold: #d49b2a;
+  --craft-rice: #ead9aa;
+  --craft-ink: #f4e0b3;
+}
+
 html {
   overflow: hidden;
+}
+
+body {
+  margin: 0;
+  background: var(--basement-bg);
+}
+
+.v-application {
+  background: var(--basement-bg) !important;
+}
+
+* {
+  box-sizing: border-box;
 }
 </style>

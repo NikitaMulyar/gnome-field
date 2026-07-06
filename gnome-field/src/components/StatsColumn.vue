@@ -1,41 +1,40 @@
 <template>
-  <div style="
-      border: 2px solid #01ff12;
-      height: 93vh;
-      padding: 1em;
-      font-family: monospace;
-      overflow: hidden;
-    ">
-    <h1 @click="toggleFullscreen()">Данные сканера</h1>
-    <!-- <div v-if="!store.drillInitialized" style="display: flex; justify-content: center; align-items: center">
-      <v-btn @click="store.initDrill()" variant="outlined" style="margin: 1em">запустить бур!</v-btn>
-      <br />
-    </div> -->
-    <span>Прогрызть клетку: <br /> 1 Drôle de blague</span>
-    <br />
-    <span>Проедено клеток: {{ store.getSteps() }}</span>
-    <br />
-    <span>Принято Drôle de blague: {{ store.getCreditsSpent() }}</span>
-    <br />
-    <br />
-    <!-- <div v-if="store.getTimeToShutdown() == 0">
-      <h2 class="shutdown-msg">САША ГОЛОДЕН!</h2>
-      <span><b>Запуск: 1 энерго-юнит</b></span>
-    </div>
-    <div v-else>
-      <span><b>До уплотнения среды:</b></span>
-      <br />
-      <h2>{{ shutdownTime }}</h2>
-    </div> -->
-    <br />
-    <h3>Журнал:</h3>
-    <div v-for="record in journal" :key="record">
-      <span>{{ record.time }} ({{ "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[record.tile.i] }}
-        {{ record.tile.j + 1 }}) {{ getTypeName(record.type) }}</span>
-      <br />
-      <span v-if="record.msg" style="font-size: 90%; font-weight: bold">{{
-        record.msg
-      }}</span>
+  <div class="stats-column">
+    <div class="journal-pin" />
+    <h1 @click="toggleFullscreen()">Подвалище</h1>
+    <section class="rice-ledger">
+      <div class="rice-row">
+        <span>Открыть клетку</span>
+        <strong><span class="rice-grain" />1 рис</strong>
+      </div>
+      <div class="rice-row">
+        <span>Прогрызено ходов</span>
+        <strong>{{ store.getSteps() }}</strong>
+      </div>
+      <div class="rice-row">
+        <span>Потрачено риса</span>
+        <strong>{{ store.getCreditsSpent() }}</strong>
+      </div>
+    </section>
+    <h3>Журнал живокрысика</h3>
+    <div class="journal-list">
+      <div
+        v-for="record in journal"
+        :key="recordKey(record)"
+        class="journal-record"
+      >
+        <span class="journal-record-main">
+          <span class="journal-time">{{ record.time }}</span>
+          <span class="journal-coord">
+            ({{ "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[record.tile.i] }}
+            {{ record.tile.j + 1 }})
+          </span>
+          <span class="journal-type">{{ getTypeName(record.type) }}</span>
+        </span>
+        <span v-if="record.msg" class="journal-message">{{
+          record.msg
+        }}</span>
+      </div>
     </div>
   </div>
 </template>
@@ -55,40 +54,36 @@ export default defineComponent({
     fullscreen: false,
   }),
   computed: {
-    shutdownTime() {
-      const time = this.store.getTimeToShutdown();
-      const seconds = Math.floor(time / 1000) % 60;
-      const minutes = Math.floor(time / 60000) % 60;
-      return `${minutes < 10 ? "0" : ""}${minutes}:${seconds < 10 ? "0" : ""
-        }${seconds}`;
-    },
     journal() {
       return [...this.store.getJournal()].reverse();
     },
   },
   methods: {
+    recordKey(record) {
+      return `${record.time}-${record.tile.i}-${record.tile.j}-${record.type}`;
+    },
     getTypeName(type) {
       switch (type) {
         case TileTypes.Water:
-          return "молоко";
+          return "вода";
         case TileTypes.Stone:
-          return "сыр";
+          return "листочки";
         case TileTypes.Entrance:
-          return "вход";
+          return "дверь в подвал";
         case TileTypes.Cliff:
-          return "леденец";
+          return "булочка";
         case TileTypes.Bomb:
-          return "агуша";
+          return "банка краски";
         case TileTypes.Sand:
-          return "шоколад";
+          return "картон";
         case TileTypes.Mole:
-          return "мышка";
+          return "сканер";
         case TileTypes.PortalEntrance:
-          return "водоворот";
+          return "вход в вентиляцию";
         case TileTypes.Target:
-          return "машина";
+          return "волшебная коробка";
         case TileTypes.PortalExit:
-          return "слив";
+          return "выход из вентиляции";
         default:
           return "неизвестно";
       }
@@ -123,8 +118,204 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.stats-column {
+  position: relative;
+  height: 100%;
+  padding: 1.1rem 1.05rem 1rem;
+  overflow: hidden;
+  border: 2px solid #6d4a2d;
+  border-radius: 0.18rem;
+  background:
+    linear-gradient(90deg, rgba(232, 203, 137, 0.052) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(232, 203, 137, 0.04) 1px, transparent 1px),
+    radial-gradient(circle at 18% 8%, rgba(226, 172, 91, 0.14), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.12)),
+    #171821;
+  background-size:
+    1.35rem 1.35rem,
+    1.35rem 1.35rem,
+    auto,
+    auto,
+    auto;
+  background-position:
+    0.45rem 0.45rem,
+    0.45rem 0.45rem,
+    center,
+    center,
+    center;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 0 2rem rgba(0, 0, 0, 0.28),
+    0 0.9rem 2.2rem rgba(0, 0, 0, 0.34);
+  color: #f4e0b3;
+  font-family: monospace;
+}
+
+.stats-column::before {
+  content: "";
+  position: absolute;
+  inset: 0.45rem;
+  pointer-events: none;
+  border: 1px solid rgba(234, 191, 113, 0.14);
+  box-shadow:
+    inset 0 0 1rem rgba(0, 0, 0, 0.28),
+    inset 0 0 0 0.35rem rgba(10, 10, 14, 0.16);
+}
+
+.journal-pin {
+  position: absolute;
+  top: 0.7rem;
+  right: 1.05rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 35%, #fff2c6 0 16%, transparent 17%),
+    #b94237;
+  box-shadow:
+    0 0.12rem 0.25rem rgba(0, 0, 0, 0.55),
+    inset 0 -0.1rem 0 rgba(65, 23, 20, 0.35);
+}
+
+.stats-column h1 {
+  position: relative;
+  margin: 0 2rem 1rem 0;
+  color: #f0bf72;
+  cursor: pointer;
+  font-size: 1.8rem;
+  line-height: 1.05;
+  text-shadow: 0 0.15rem 0 rgba(0, 0, 0, 0.45);
+}
+
+.rice-ledger {
+  position: relative;
+  display: grid;
+  gap: 0.45rem;
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 0.8rem;
+  border: 1px solid rgba(220, 169, 92, 0.36);
+  background:
+    linear-gradient(90deg, rgba(246, 219, 164, 0.08), transparent 62%),
+    rgba(12, 13, 18, 0.58);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 0.35rem 0.7rem rgba(0, 0, 0, 0.2);
+}
+
+.rice-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  min-height: 1.7rem;
+  color: #d5c3a0;
+  font-size: 0.95rem;
+}
+
+.rice-row strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #fff0bd;
+  font-size: 1.05rem;
+}
+
+.rice-grain {
+  width: 0.7rem;
+  height: 0.34rem;
+  border-radius: 999rem;
+  background: #ead9aa;
+  rotate: -18deg;
+  box-shadow:
+    0.2rem 0.08rem 0 #f6e8bd,
+    -0.2rem 0.06rem 0 #d7c18a;
+}
+
+.stats-column h3 {
+  position: relative;
+  margin: 0 0 0.7rem;
+  color: #e9c47a;
+  font-size: 1.08rem;
+  letter-spacing: 0.02rem;
+}
+
+.journal-list {
+  position: relative;
+  display: grid;
+  gap: 0.34rem;
+  max-height: calc(100% - 12.5rem);
+  padding: 0.08rem 0.2rem 0.2rem 0;
+  overflow: hidden;
+  mask-image: linear-gradient(180deg, #000 0 calc(100% - 1.4rem), transparent);
+}
+
+.journal-record {
+  position: relative;
+  display: grid;
+  grid-template-columns: 0.4rem minmax(0, 1fr);
+  column-gap: 0.55rem;
+  align-items: start;
+  padding: 0.4rem 0.55rem 0.42rem 0.45rem;
+  border-radius: 0.12rem;
+  background:
+    linear-gradient(90deg, rgba(216, 187, 116, 0.08), transparent 42%),
+    rgba(10, 11, 16, 0.42);
+  box-shadow:
+    inset 0 0 0 1px rgba(234, 191, 113, 0.075),
+    0 0.12rem 0.35rem rgba(0, 0, 0, 0.12);
+}
+
+.journal-record::before {
+  content: "";
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  width: 0.32rem;
+  height: 0.32rem;
+  margin-top: 0.32rem;
+  border-radius: 50%;
+  background: #d8bb74;
+  box-shadow: 0 0 0.34rem rgba(216, 187, 116, 0.48);
+}
+
+.journal-record-main {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: 4.6rem 3.55rem minmax(0, 1fr);
+  column-gap: 0.42rem;
+  align-items: baseline;
+  min-width: 0;
+  color: #eadfca;
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+
+.journal-time,
+.journal-coord {
+  white-space: nowrap;
+}
+
+.journal-coord {
+  color: #d7c39d;
+}
+
+.journal-type {
+  min-width: 0;
+  color: #f2dfb8;
+  overflow-wrap: anywhere;
+}
+
+.journal-message {
+  grid-column: 2;
+  display: block;
+  margin-top: 0.16rem;
+  color: #ffd986;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
 .shutdown-msg {
-  color: red;
+  color: #bf2633;
   animation: blinker 1s linear infinite;
 }
 

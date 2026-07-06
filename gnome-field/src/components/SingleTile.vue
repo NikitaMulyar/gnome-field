@@ -1,5 +1,9 @@
 <template>
-  <div @click="tap" @mouseover="mouseOver" class="tile"></div>
+  <div
+    @click="tap"
+    class="tile"
+    :class="tileClasses"
+  />
 </template>
 
 <script>
@@ -37,10 +41,17 @@ export default defineComponent({
           opacity = 0;
       }
 
-      if (this.i == this.store.mouseI - 1 || this.j == this.store.mouseJ - 1)
-        opacity = Math.max(0.3, opacity);
-
       return opacity;
+    },
+    tileClasses() {
+      const visibility = this.store.getTile(this.i, this.j).visibility;
+      return {
+        available: this.store.isAvailable(this.i, this.j),
+        closed: visibility == TileVisibility.Closed,
+        opened: visibility == TileVisibility.Opened,
+        revealed: visibility == TileVisibility.Revealed,
+        scanned: visibility == TileVisibility.Scanned,
+      };
     },
     color() {
       const visibility = this.store.getTile(this.i, this.j).visibility;
@@ -51,28 +62,21 @@ export default defineComponent({
       if (distToTarget > 10) distToTarget = 10000;
       const normDistToTarget = Math.min(1 - (distToTarget / 10), 0.5);
 
-      let closedColor = `rgb(${normDistToTarget * 200}, ${normDistToTarget * 255}, ${normDistToTarget * 200})`;
+      let closedColor = `rgb(${42 + normDistToTarget * 92}, ${
+        37 + normDistToTarget * 78
+      }, ${42 + normDistToTarget * 86})`;
 
       let color;
       if (visibility == TileVisibility.Scanned)
-        color = availability ? "#ff00ff" : "#2e002e";
-      else color = availability ? "#277a33" : closedColor;
-
-      // Highlight the tile if it is adjacent to the mouse with a same color but brighter
-      if (this.i == this.store.mouseI - 1 || this.j == this.store.mouseJ - 1)
-        color = this.brighten(color, 0.1);
+        color = availability ? "#856cda" : "#2c2a3e";
+      else color = availability ? "#c79542" : closedColor;
 
       return color;
     },
     borderColor() {
       const visibility = this.store.getTile(this.i, this.j).visibility;
       const color =
-        visibility == TileVisibility.Scanned ? "#ff00ff" : "#01ff12";
-      if (
-        (this.i == this.store.mouseI - 1 || this.j == this.store.mouseJ - 1) &&
-        visibility == TileVisibility.Opened
-      )
-        return "transparent";
+        visibility == TileVisibility.Scanned ? "#a997ff" : "#e8bd66";
       return color;
     },
   },
@@ -80,34 +84,54 @@ export default defineComponent({
     tap() {
       this.store.tapTile(this.i, this.j);
     },
-    mouseOver() {
-      this.store.mouseI = this.i + 1;
-      this.store.mouseJ = this.j + 1;
-    },
-    brighten(color, amount) {
-      const c = color.substring(1);
-      const rgb = parseInt(c, 16);
-      const r = (rgb >> 16) & 0xff;
-      const g = (rgb >> 8) & 0xff;
-      const b = (rgb >> 0) & 0xff;
-
-      const newR = Math.min(255, r + 255 * amount);
-      const newG = Math.min(255, g + 255 * amount);
-      const newB = Math.min(255, b + 255 * amount);
-
-      return `#${((newR << 16) | (newG << 8) | newB).toString(16)}`;
-    },
   },
 });
 </script>
 
 <style scoped>
 .tile {
+  position: relative;
+  isolation: isolate;
   background-color: v-bind("color");
   border: 1px solid v-bind("borderColor");
   aspect-ratio: 1;
   width: 100%;
   opacity: v-bind("opacity");
+  overflow: hidden;
+  transition:
+    background-color 140ms ease,
+    opacity 260ms ease,
+    border-color 140ms ease;
   cursor: url("@/assets/cross.cur"), auto;
+}
+
+.tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 26% 30%, rgba(245, 210, 140, 0.15) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 68% 66%, rgba(245, 210, 140, 0.1) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 47% 78%, rgba(0, 0, 0, 0.24) 0 1px, transparent 1.7px),
+    linear-gradient(135deg, rgba(255, 236, 180, 0.045), rgba(0, 0, 0, 0.14));
+  background-size: 100% 100%;
+  opacity: 0.72;
+}
+
+.tile.available {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 228, 158, 0.28),
+    inset 0 0 0.6rem rgba(255, 198, 80, 0.16);
+}
+
+.tile.opened {
+  box-shadow: none;
+}
+
+.tile.scanned {
+  box-shadow:
+    inset 0 0 0.75rem rgba(130, 111, 246, 0.18);
 }
 </style>

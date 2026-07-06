@@ -1,54 +1,39 @@
-﻿# gnome-field
+# gnome-field
 
-Игра, которая использует карту из `gnome-field-generator`: показывает PNG-поле, накрывает его интерактивной сеткой и ведет состояние прохождения.
+Игровой фронтенд проекта "Подвалище": десктопная карта подвала, где живокрысик открывает клетки, проходит через вентиляцию, тратит рис и ищет волшебную коробку.
 
-Этот репозиторий устроен с дополнительной вложенной папкой:
+Рабочее Vue/Vuetify-приложение лежит в подпапке `gnome-field/`.
+
+## Структура
 
 ```text
 gnome-field/
-  docker-compose.yml       # запуск игры отдельно
-  README.md                # этот файл: общая точка входа
-  gnome-field/             # реальное Vue/Vuetify-приложение
+  docker-compose.yml
+  README.md
+  gnome-field/
     Dockerfile
-    src/
     public/
+    src/
     package.json
 ```
 
-Основная документация по коду лежит в [gnome-field/README.md](gnome-field/README.md).
+Основная документация по приложению: [gnome-field/README.md](gnome-field/README.md).
 
-## Что здесь происходит
-
-Игра состоит из двух синхронных частей:
-
-- `public/map.json` - логическая карта: типы клеток, стены, порталы.
-- `src/assets/map.png` - фоновая картинка той же карты.
-
-`map.png` генерируется в соседнем проекте `gnome-field-generator`, а `map.json` обычно создается в `gnome-field-generator/map-editor`.
-
-Если заменить только JSON, кликабельная логика изменится, но картинка останется старой. Если заменить только PNG, поле будет выглядеть иначе, но логика кликов останется старой. Почти всегда обновлять нужно оба файла.
-
-## Запуск через Docker
-
-Из этой папки можно поднять только игру:
+## Запуск Через Docker
 
 ```bash
 docker compose up --build
 ```
 
-Игра откроется здесь:
+Адрес:
 
 ```text
-http://localhost:3000/
+http://127.0.0.1:3000/
 ```
 
-Из корня `C:\NotGnomes` можно поднять сразу игру и редактор:
+Docker передает `VITE_BASE_PATH=/`, поэтому приложение открывается из корня.
 
-```bash
-docker compose up --build
-```
-
-## Запуск без Docker
+## Запуск Без Docker
 
 ```bash
 cd gnome-field
@@ -56,37 +41,93 @@ yarn install
 yarn dev
 ```
 
-## Как обновить карту игры
+Адрес по умолчанию:
 
-1. В `gnome-field-generator/map-editor` сделать и сохранить новый `map.json`.
-2. Положить JSON сюда:
+```text
+http://127.0.0.1:3000/
+```
 
-   ```text
-   gnome-field-generator/src/assets/map.json
-   ```
+Если нужно проверить режим GitHub Pages:
 
-3. Из корня `C:\NotGnomes` запустить:
+```bash
+VITE_BASE_PATH=/gnome-field/ yarn dev
+```
 
-   ```bash
-   docker compose --profile tools run --rm map-sync
-   ```
+Тогда адрес будет:
 
-4. Сервис обновит:
+```text
+http://127.0.0.1:3000/gnome-field/
+```
 
-   ```text
-   gnome-field/gnome-field/public/map.json
-   gnome-field/gnome-field/src/assets/map.png
-   ```
+Если порт занят:
 
-5. Открыть игру и проверить, что клики совпадают с картинкой.
+```bash
+yarn dev --port 3001
+```
+
+## Проверки
+
+```bash
+cd gnome-field
+yarn lint
+yarn build
+```
+
+`yarn build` может предупреждать о крупных Vite/Vuetify chunks. Это предупреждение, не ошибка сборки.
+
+## Карта И Синхронизация
+
+Игра использует два связанных файла:
+
+- `gnome-field/public/map.json` - логика карты: типы клеток, стены, порталы.
+- `gnome-field/src/assets/map.png` - preview-картинка той же карты.
+
+В текущей версии карта также отрисовывает текстуры из `src/assets/map-tiles/art-camp/` через `AnimatedMapLayer.vue`.
+
+Если обновлять карту из `gnome-field-generator`, важно синхронизировать JSON и preview. В соседнем репозитории есть sync tooling и генератор текстур.
+
+## Где Что Лежит
+
+- `gnome-field/public/map.json` - карта, которую игра загружает при старте.
+- `gnome-field/src/stores/app.js` - правила открытия клеток, порталы, взрыв банки краски, таймеры.
+- `gnome-field/src/components/AnimatedMapLayer.vue` - визуальный слой карты с текстурами.
+- `gnome-field/src/components/TileGrid.vue` и `SingleTile.vue` - кликабельный слой закрытых/просканированных клеток.
+- `gnome-field/src/components/StatsColumn.vue` - правая панель "Подвалище" и журнал живокрысика.
+- `gnome-field/src/assets/map-tiles/art-camp/` - текущие текстуры карты.
+- `gnome-field/src/assets/paint-explosion.gif` и `paint-stain.png` - эффект банки краски.
+
+## Типы Клеток
+
+| Код | Смысл |
+| --- | --- |
+| `0` | вода |
+| `1` | разбросанные листочки |
+| `2` | дверь в подвал |
+| `3` | булочка |
+| `4` | банка краски |
+| `5` | картон |
+| `6` | сканер |
+| `7` | вход в вентиляцию |
+| `8` | волшебная коробка |
+| `9` | выход из вентиляции |
+
+Стены карты отрисовываются как листы фанеры через `wall-up/right/down/left.png`.
+
+## Анимации
+
+В самой карте анимируются только:
+
+- вода: `water.gif`;
+- сканер: `scanner.gif`;
+- взрыв банки краски: `paint-explosion.gif`.
+
+После взрыва банка оставляет статичное красное пятно `paint-stain.png`.
 
 ## Деплой
-
-Скрипт деплоя лежит внутри приложения:
 
 ```bash
 cd gnome-field
 ./deploy.sh
 ```
 
-Он делает сборку с `VITE_BASE_PATH=/gnome-field/`, копирует `index.html` в `404.html` для SPA-роутинга и пушит `dist/` в `gh-pages` репозитория `GregoryKogan/gnome-field`.
+Скрипт собирает приложение с `VITE_BASE_PATH=/gnome-field/`, копирует `index.html` в `404.html` для SPA fallback и пушит `dist/` в `gh-pages`.

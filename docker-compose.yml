@@ -1,4 +1,4 @@
-﻿services:
+services:
   gnome-field:
     build:
       context: ./gnome-field

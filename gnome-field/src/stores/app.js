@@ -1,4 +1,4 @@
-﻿// Utilities
+// Utilities
 import { defineStore } from "pinia";
 
 export const TileTypes = {
@@ -27,6 +27,15 @@ export const TileVisibility = {
   Revealed: 3,
   Opened: 4,
 };
+
+const PAINT_EXPLOSION_DELAY_MS = 2000;
+const PAINT_EXPLOSION_VISIBLE_MS = 850;
+const SHUTDOWN_DURATION_MS = 60 * 1000 * 150;
+const VENT_OPEN_DURATION_MS = 60 * 1000 * 15;
+
+const paintEffectKey = (i, j) => `${i}-${j}`;
+const fieldStateKey = (field) =>
+  field.tiles.map(({ type, visibility }) => `${type}:${visibility}`).join("|");
 
 export class Tile {
   constructor(type, walls) {
@@ -123,10 +132,10 @@ export class Field {
       const data = await response.json();
       const tiles = data.tiles.map((tile) => {
         let newTile = new Tile(tile.type, tile.walls);
-        newTile.setVisibility(1);
+        newTile.setVisibility(TileVisibility.Closed);
         return newTile;
       });
-      const portals = data.portals.map(
+      const portals = (data.portals ?? []).map(
         (portal) => new Portal(portal.entrance, portal.exit)
       );
       return new Field(data.width, data.height, tiles, portals);
@@ -235,9 +244,7 @@ export class Field {
     )
       this.splashOpen(i, j);
 
-    // Handle bomb tiles
-    if (this.tiles[this.index(i, j)].type == TileTypes.Bomb)
-      this.handleExplosion(i, j);
+    // Paint cans explode asynchronously from the store after a short delay.
 
     // Handle portal tiles
     if (
@@ -266,21 +273,7 @@ export class Field {
     )
       this.targetReached = true;
 
-    // Open adjacent revealed tiles
-    if (i > 0 && this.get(i - 1, j).visibility == TileVisibility.Revealed)
-      this.open(i - 1, j);
-    if (
-      i < this.height - 1 &&
-      this.get(i + 1, j).visibility == TileVisibility.Revealed
-    )
-      this.open(i + 1, j);
-    if (j > 0 && this.get(i, j - 1).visibility == TileVisibility.Revealed)
-      this.open(i, j - 1);
-    if (
-      j < this.width - 1 &&
-      this.get(i, j + 1).visibility == TileVisibility.Revealed
-    )
-      this.open(i, j + 1);
+    this.openRevealedNeighbors(i, j);
   }
 
   canOpen(i, j) {
@@ -388,6 +381,8 @@ export class Field {
     const entrance_tile_index = this.tiles.findIndex(
       (tile) => tile.type == TileTypes.Entrance
     );
+    if (entrance_tile_index == -1) return;
+
     this.tiles[entrance_tile_index].setVisibility(TileVisibility.Opened);
 
     const [i, j] = this.index2d(entrance_tile_index);
@@ -398,22 +393,50 @@ export class Field {
   }
 
   handleExplosion(i, j) {
+    const affectedTiles = [];
     for (let h_offset = -1; h_offset <= 1; h_offset++) {
       for (let v_offset = -1; v_offset <= 1; v_offset++) {
-        this.tiles[this.index(i + v_offset, j + h_offset)].setVisibility(
-          TileVisibility.Opened
-        );
-        this.tiles[this.index(i + v_offset, j + h_offset)].setType(
-          TileTypes.Cliff
-        );
+        const tileI = i + v_offset;
+        const tileJ = j + h_offset;
+        if (
+          tileI < 0 ||
+          tileI >= this.height ||
+          tileJ < 0 ||
+          tileJ >= this.width
+        )
+          continue;
+
+        const tile = this.tiles[this.index(tileI, tileJ)];
+        tile.setVisibility(TileVisibility.Opened);
+        if (tile.type == TileTypes.Target) this.targetReached = true;
+        affectedTiles.push({ i: tileI, j: tileJ });
       }
     }
+    return affectedTiles;
+  }
+
+  openRevealedNeighbors(i, j) {
+    if (i > 0 && this.get(i - 1, j).visibility == TileVisibility.Revealed)
+      this.open(i - 1, j);
+    if (
+      i < this.height - 1 &&
+      this.get(i + 1, j).visibility == TileVisibility.Revealed
+    )
+      this.open(i + 1, j);
+    if (j > 0 && this.get(i, j - 1).visibility == TileVisibility.Revealed)
+      this.open(i, j - 1);
+    if (
+      j < this.width - 1 &&
+      this.get(i, j + 1).visibility == TileVisibility.Revealed
+    )
+      this.open(i, j + 1);
   }
 
   handlePortalEntrance(i, j) {
     const portal = this.portals.find((portal) =>
       portal.entrance_tiles.includes(this.index(i, j))
     );
+    if (!portal) return;
 
     const exit_is_opened = portal.exit_tiles.some((exit_tile) =>
       this.tiles[exit_tile].isOpened()
@@ -441,12 +464,12 @@ export class Field {
       )
         this.open(exit_i + 1, exit_j);
       if (
-        j > 0 &&
+        exit_j > 0 &&
         this.get(exit_i, exit_j - 1).visibility == TileVisibility.Revealed
       )
         this.open(exit_i, exit_j - 1);
       if (
-        j < this.width - 1 &&
+        exit_j < this.width - 1 &&
         this.get(exit_i, exit_j + 1).visibility == TileVisibility.Revealed
       )
         this.open(exit_i, exit_j + 1);
@@ -457,6 +480,8 @@ export class Field {
     const portal = this.portals.find((portal) =>
       portal.exit_tiles.includes(this.index(i, j))
     );
+    if (!portal) return;
+
     for (let exit_tile of portal.exit_tiles)
       this.open(...this.index2d(exit_tile));
   }
@@ -475,11 +500,18 @@ export class Field {
   handleMole(i, j) {
     for (let h_offset = -3; h_offset <= 3; h_offset++) {
       for (let v_offset = -3; v_offset <= 3; v_offset++) {
-        if (this.get(i + v_offset, j + h_offset).isClosed()) {
-          this.tiles[this.index(i + v_offset, j + h_offset)].setVisibility(
-            TileVisibility.Scanned
-          );
-        }
+        const tileI = i + v_offset;
+        const tileJ = j + h_offset;
+        if (
+          tileI < 0 ||
+          tileI >= this.height ||
+          tileJ < 0 ||
+          tileJ >= this.width
+        )
+          continue;
+
+        const tile = this.tiles[this.index(tileI, tileJ)];
+        if (tile.isClosed()) tile.setVisibility(TileVisibility.Scanned);
       }
     }
   }
@@ -502,13 +534,15 @@ export const useAppStore = defineStore("app", {
     creditsSpent: 0,
     journal: [],
     drillInitialized: false,
-    mouseI: -1,
-    mouseJ: -1,
-    targetReached: false,
     ventCountdownDate: null,
     timeToVentOpen: 0,
     showPrizeVideo: false,
     finished: false,
+    pendingPaintExplosions: {},
+    activePaintExplosions: {},
+    paintStains: {},
+    shutdownIntervalId: null,
+    ventIntervalId: null,
   }),
   actions: {
     async loadMap() {
@@ -517,13 +551,15 @@ export const useAppStore = defineStore("app", {
       this.field = await Field.fromJSON(`${import.meta.env.BASE_URL}map.json`);
     },
     tapTile(i, j) {
+      if (!this.field) return;
+
       const oldTileType = this.field.get(i, j).type;
-      const oldField = this.field.tiles.map((tile) => ({ ...tile }));
+      const oldField = fieldStateKey(this.field);
       this.field.open(i, j);
       this.field.updateAvailabilityMap();
-      const newField = this.field.tiles.map((tile) => ({ ...tile }));
+      const newField = fieldStateKey(this.field);
 
-      if (JSON.stringify(oldField) != JSON.stringify(newField)) {
+      if (oldField != newField) {
         this.steps++;
 
         if (this.timeToShutdown == 0) this.creditsSpent += 2;
@@ -531,14 +567,13 @@ export const useAppStore = defineStore("app", {
 
         let journalMsg = null;
         if (oldTileType == TileTypes.Bomb)
-          journalMsg = "Р’С‹ РЅР°С‚РєРЅСѓР»РёСЃСЊ РЅР° РїСЂРѕСЃСЂРѕС‡РµРЅРЅСѓСЋ Р°РіСѓС€Сѓ Рё РІР·РѕСЂРІР°Р»РёСЃСЊ!";
+          journalMsg = "Банка треснула. Красное пятно через 2 секунды!";
         else if (oldTileType == TileTypes.PortalEntrance)
-          journalMsg = "Р’С‹ РїСЂРѕС€Р»Рё С‡РµСЂРµР· РІРѕРґРѕРІРѕСЂРѕС‚!";
+          journalMsg = "Живокрысик нырнул в вентиляционную трубу.";
         else if (oldTileType == TileTypes.Mole)
-          journalMsg =
-            "Р’С‹ РЅР°С‚РєРЅСѓР»РёСЃСЊ РЅР° РјС‹С€РєСѓ, РїРѕРєР°Р·С‹РІР°СЋС‰СѓСЋ РѕР±Р»Р°СЃС‚СЊ РІРѕРєСЂСѓРі!";
+          journalMsg = "Сканер подсветил тайники подвала.";
         else if (oldTileType == TileTypes.Target)
-          journalMsg = "Р’С‹ РґРѕСЃС‚РёРіР»Рё С†РµР»Рё!";
+          journalMsg = "Живокрысик нашел волшебную коробку!";
 
         this.journal.push({
           tile: { i, j },
@@ -552,15 +587,107 @@ export const useAppStore = defineStore("app", {
           msg: journalMsg,
         });
 
-        this.countDownDate = new Date().getTime() + 60 * 1000 * 150;
-        const interval = setInterval(() => {
-          const now = new Date().getTime();
-          this.timeToShutdown = this.countDownDate - now;
-          if (this.timeToShutdown < 0) {
-            clearInterval(interval);
-            this.timeToShutdown = 0;
-          }
-        }, 500);
+        this.startShutdownTimer();
+
+        if (
+          oldTileType == TileTypes.Bomb &&
+          this.field.get(i, j).isOpened()
+        ) {
+          this.schedulePaintExplosion(i, j);
+        }
+      }
+    },
+    schedulePaintExplosion(i, j) {
+      const key = paintEffectKey(i, j);
+      if (this.pendingPaintExplosions[key] || this.paintStains[key]) return;
+
+      this.pendingPaintExplosions = {
+        ...this.pendingPaintExplosions,
+        [key]: true,
+      };
+
+      setTimeout(() => {
+        if (!this.field) return;
+
+        const affectedTiles = this.field.handleExplosion(i, j);
+        for (const tile of affectedTiles) {
+          this.field.openRevealedNeighbors(tile.i, tile.j);
+        }
+        this.field.updateAvailabilityMap();
+
+        const nextPending = { ...this.pendingPaintExplosions };
+        delete nextPending[key];
+        this.pendingPaintExplosions = nextPending;
+
+        this.paintStains = {
+          ...this.paintStains,
+          [key]: true,
+        };
+        this.activePaintExplosions = {
+          ...this.activePaintExplosions,
+          [key]: (this.activePaintExplosions[key] || 0) + 1,
+        };
+
+        setTimeout(() => {
+          const nextActive = { ...this.activePaintExplosions };
+          delete nextActive[key];
+          this.activePaintExplosions = nextActive;
+        }, PAINT_EXPLOSION_VISIBLE_MS);
+      }, PAINT_EXPLOSION_DELAY_MS);
+    },
+    startShutdownTimer() {
+      this.countDownDate = new Date().getTime() + SHUTDOWN_DURATION_MS;
+      this.updateShutdownTimer();
+
+      if (this.shutdownIntervalId !== null)
+        clearInterval(this.shutdownIntervalId);
+
+      this.shutdownIntervalId = setInterval(() => {
+        this.updateShutdownTimer();
+      }, 500);
+    },
+    updateShutdownTimer() {
+      const now = new Date().getTime();
+      this.timeToShutdown = this.countDownDate - now;
+      if (this.timeToShutdown >= 0) return;
+
+      this.timeToShutdown = 0;
+      if (this.shutdownIntervalId !== null) {
+        clearInterval(this.shutdownIntervalId);
+        this.shutdownIntervalId = null;
+      }
+    },
+    startVentTimer() {
+      this.ventCountdownDate = new Date().getTime() + VENT_OPEN_DURATION_MS;
+      this.updateVentTimer();
+
+      if (this.ventIntervalId !== null) clearInterval(this.ventIntervalId);
+
+      this.ventIntervalId = setInterval(() => {
+        this.updateVentTimer();
+      }, 500);
+    },
+    updateVentTimer() {
+      const now = new Date().getTime();
+      this.timeToVentOpen = this.ventCountdownDate - now;
+      if (this.timeToVentOpen >= 0) return;
+
+      this.timeToVentOpen = 0;
+      this.showPrizeVideo = true;
+      if (this.ventIntervalId !== null) {
+        clearInterval(this.ventIntervalId);
+        this.ventIntervalId = null;
+      }
+    },
+    clearTimers() {
+      if (this.shutdownIntervalId !== null) {
+        clearInterval(this.shutdownIntervalId);
+        this.shutdownIntervalId = null;
+      }
+
+      if (this.ventIntervalId !== null) {
+        clearInterval(this.ventIntervalId);
+        this.ventIntervalId = null;
       }
     },
     getWidth() {
@@ -574,6 +701,12 @@ export const useAppStore = defineStore("app", {
     },
     getBombs() {
       return this.field.bombs;
+    },
+    getPaintExplosionVersion(i, j) {
+      return this.activePaintExplosions[paintEffectKey(i, j)] || 0;
+    },
+    hasPaintStain(i, j) {
+      return Boolean(this.paintStains[paintEffectKey(i, j)]);
     },
     isAvailable(i, j) {
       return this.field.availabilityMap[this.field.index(i, j)];
@@ -595,30 +728,13 @@ export const useAppStore = defineStore("app", {
     },
     initDrill() {
       if (this.drillInitialized) return;
-      this.countDownDate = new Date().getTime() + 60 * 1000 * 150;
-      const interval = setInterval(() => {
-        const now = new Date().getTime();
-        this.timeToShutdown = this.countDownDate - now;
-        if (this.timeToShutdown < 0) {
-          clearInterval(interval);
-          this.timeToShutdown = 0;
-        }
-      }, 500);
+      this.startShutdownTimer();
       this.drillInitialized = true;
       this.field.openEntrance();
     },
     targetReached() {
       if (this.ventCountdownDate === null && this.field.targetReached) {
-        this.ventCountdownDate = new Date().getTime() + 60 * 1000 * 15;
-        const interval = setInterval(() => {
-          const now = new Date().getTime();
-          this.timeToVentOpen = this.ventCountdownDate - now;
-          if (this.timeToVentOpen < 0) {
-            clearInterval(interval);
-            this.timeToVentOpen = 0;
-            this.showPrizeVideo = true;
-          }
-        }, 500);
+        this.startVentTimer();
       }
       return this.field.targetReached;
     },
@@ -635,6 +751,7 @@ export const useAppStore = defineStore("app", {
       this.setShowPrizeVideo(false);
       this.field.targetReached = false;
       this.finished = true;
+      this.clearTimers();
     },
     getFinished() {
       return this.finished;
@@ -648,4 +765,3 @@ export const useAppStore = defineStore("app", {
     },
   },
 });
-
