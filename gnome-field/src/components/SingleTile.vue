@@ -112,12 +112,10 @@ export default defineComponent({
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 26% 30%, rgba(245, 210, 140, 0.15) 0 1px, transparent 1.8px),
-    radial-gradient(circle at 68% 66%, rgba(245, 210, 140, 0.1) 0 1px, transparent 1.7px),
-    radial-gradient(circle at 47% 78%, rgba(0, 0, 0, 0.24) 0 1px, transparent 1.7px),
-    linear-gradient(135deg, rgba(255, 236, 180, 0.045), rgba(0, 0, 0, 0.14));
+    linear-gradient(135deg, rgba(255, 236, 180, 0.035), rgba(0, 0, 0, 0.16)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(0, 0, 0, 0.1));
   background-size: 100% 100%;
-  opacity: 0.72;
+  opacity: 0.64;
 }
 
 .tile.available {
