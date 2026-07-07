@@ -15,7 +15,23 @@
     <section class="rice-ledger">
       <div class="rice-row">
         <span>Открыть клетку</span>
-        <strong><span class="rice-grain" />1 рис</strong>
+        <strong class="rice-cost-control">
+          <span class="rice-grain" />
+          <input
+            v-model="riceCostDraft"
+            class="rice-cost-input"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            aria-label="Количество риса за открытие клетки"
+            title="Количество риса за открытие клетки"
+            @focus="selectRiceCost"
+            @input="updateRiceCost"
+            @blur="commitRiceCost"
+            @keydown.enter.prevent="commitRiceCost"
+          />
+          <span class="rice-cost-unit">{{ riceCostUnit }}</span>
+        </strong>
       </div>
       <div class="rice-row">
         <span>Прогрызено ходов</span>
@@ -62,13 +78,66 @@ export default defineComponent({
   },
   data: () => ({
     fullscreen: false,
+    riceCostDraft: "1",
   }),
   computed: {
     journal() {
       return [...this.store.getJournal()].reverse();
     },
+    riceCostUnit() {
+      const value = Number.parseInt(
+        this.riceCostDraft || String(this.store.getRiceCost()),
+        10
+      );
+      return this.getRiceUnit(value);
+    },
+  },
+  mounted() {
+    this.syncRiceCostDraft();
+  },
+  watch: {
+    "store.riceCost"() {
+      this.syncRiceCostDraft();
+    },
   },
   methods: {
+    syncRiceCostDraft() {
+      this.riceCostDraft = String(this.store.getRiceCost());
+    },
+    sanitizeRiceCostInput(value) {
+      return value.replace(/\D/g, "").slice(0, 3);
+    },
+    selectRiceCost(event) {
+      event.target.select();
+    },
+    updateRiceCost() {
+      const cleanValue = this.sanitizeRiceCostInput(this.riceCostDraft);
+      this.riceCostDraft = cleanValue;
+      if (cleanValue && Number.parseInt(cleanValue, 10) > 0)
+        this.store.setRiceCost(cleanValue);
+    },
+    commitRiceCost(event) {
+      if (!this.riceCostDraft) {
+        this.syncRiceCostDraft();
+      } else {
+        const normalizedCost = this.store.normalizeRiceCost(
+          this.riceCostDraft
+        );
+        this.riceCostDraft = String(normalizedCost);
+        this.store.setRiceCost(normalizedCost);
+      }
+      event?.target?.blur?.();
+    },
+    getRiceUnit(value) {
+      const normalizedValue = Math.abs(Number.isFinite(value) ? value : 1);
+      const lastTwoDigits = normalizedValue % 100;
+      const lastDigit = normalizedValue % 10;
+
+      if (lastTwoDigits >= 11 && lastTwoDigits <= 14) return "рисов";
+      if (lastDigit == 1) return "рис";
+      if (lastDigit >= 2 && lastDigit <= 4) return "риса";
+      return "рисов";
+    },
     recordKey(record) {
       return `${record.time}-${record.tile.i}-${record.tile.j}-${record.type}`;
     },
@@ -81,7 +150,7 @@ export default defineComponent({
         case TileTypes.Entrance:
           return "дверь в подвал";
         case TileTypes.Cliff:
-          return "засохший второй завтрак";
+          return "химические колбы";
         case TileTypes.Bomb:
           return "банка краски";
         case TileTypes.Sand:
@@ -258,6 +327,39 @@ export default defineComponent({
   gap: 0.35rem;
   color: #fff0bd;
   font-size: 1.05rem;
+}
+
+.rice-cost-control {
+  padding: 0.05rem 0.2rem 0.05rem 0.1rem;
+  border: 1px solid transparent;
+  border-radius: 0.12rem;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.rice-cost-control:focus-within {
+  border-color: rgba(240, 191, 114, 0.55);
+  background: rgba(240, 191, 114, 0.1);
+}
+
+.rice-cost-input {
+  width: 2.2rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  color: #fff0bd;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1;
+  text-align: right;
+}
+
+.rice-cost-input::selection {
+  color: #171821;
+  background: #f0bf72;
 }
 
 .rice-grain {

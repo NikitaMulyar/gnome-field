@@ -12,6 +12,7 @@
       class="animated-map-tile"
     >
       <img
+        v-if="shouldRenderTileImage(index - 1)"
         :src="tileImage(index - 1)"
         class="tile-image"
         :class="{ 'tile-image-portal': isPortalTile(index - 1) }"
@@ -19,12 +20,14 @@
         alt=""
         draggable="false"
       />
-      <span
+      <img
         v-for="direction in wallDirections(index - 1)"
         :key="direction"
         class="wall"
         :class="`wall-${direction}`"
-        :style="{ backgroundImage: `url(${wallImage(direction)})` }"
+        :src="wallImage(index - 1, direction)"
+        alt=""
+        draggable="false"
       />
     </div>
   </div>
@@ -32,28 +35,48 @@
 
 <script>
 import { defineComponent } from "vue";
-import { useAppStore, WallDirections } from "@/stores/app";
+import { TileVisibility, useAppStore, WallDirections } from "@/stores/app";
 
-import basementDoor from "@/assets/map-tiles/art-camp/basement-door.png";
-import bun from "@/assets/map-tiles/art-camp/bun.png";
-import cardboard from "@/assets/map-tiles/art-camp/cardboard.png";
-import magicBox from "@/assets/map-tiles/art-camp/magic-box.gif";
-import paintCan from "@/assets/map-tiles/art-camp/paint-can.png";
-import papers from "@/assets/map-tiles/art-camp/papers.png";
-import scanner from "@/assets/map-tiles/art-camp/scanner.gif";
-import ventIn from "@/assets/map-tiles/art-camp/vent-in.png";
-import ventOut from "@/assets/map-tiles/art-camp/vent-out.png";
-import water from "@/assets/map-tiles/art-camp/water.gif";
-import wallDown from "@/assets/map-tiles/art-camp/wall-down.png";
-import wallLeft from "@/assets/map-tiles/art-camp/wall-left.png";
-import wallRight from "@/assets/map-tiles/art-camp/wall-right.png";
-import wallUp from "@/assets/map-tiles/art-camp/wall-up.png";
+const MAP_TILE_ASSETS = import.meta.glob(
+  "../assets/map-tiles/art-camp/*.{gif,png}",
+  {
+    eager: true,
+    import: "default",
+  }
+);
 
-const TILE_IMAGES = {
+const tileAsset = (filename) =>
+  MAP_TILE_ASSETS[`../assets/map-tiles/art-camp/${filename}`];
+
+const basementDoor = tileAsset("basement-door.png");
+const chemicalFlasks = tileAsset("chemical-flasks.png");
+const cardboard = tileAsset("cardboard.png");
+const magicBox = tileAsset("magic-box.png");
+const magicBoxAnimated = tileAsset("magic-box.gif") ?? magicBox;
+const paintCan = tileAsset("paint-can.png");
+const papers = tileAsset("papers.png");
+const scanner = tileAsset("scanner.png");
+const scannerAnimated = tileAsset("scanner.gif") ?? scanner;
+const ventIn = tileAsset("vent-in.png");
+const ventInAnimated = tileAsset("vent-in.gif") ?? ventIn;
+const ventOut = tileAsset("vent-out.png");
+const ventOutAnimated = tileAsset("vent-out.gif") ?? ventOut;
+const water = tileAsset("water.png");
+const waterAnimated = tileAsset("water.gif") ?? water;
+const wallDown = tileAsset("wall-down.png");
+const wallDownAnimated = tileAsset("wall-down.gif") ?? wallDown;
+const wallLeft = tileAsset("wall-left.png");
+const wallLeftAnimated = tileAsset("wall-left.gif") ?? wallLeft;
+const wallRight = tileAsset("wall-right.png");
+const wallRightAnimated = tileAsset("wall-right.gif") ?? wallRight;
+const wallUp = tileAsset("wall-up.png");
+const wallUpAnimated = tileAsset("wall-up.gif") ?? wallUp;
+
+const TILE_IMAGES_STATIC = {
   0: water,
   1: papers,
   2: basementDoor,
-  3: bun,
+  3: chemicalFlasks,
   4: paintCan,
   5: cardboard,
   6: scanner,
@@ -62,11 +85,26 @@ const TILE_IMAGES = {
   9: ventOut,
 };
 
-const WALL_IMAGES = {
+const TILE_IMAGES_ANIMATED = {
+  0: waterAnimated,
+  6: scannerAnimated,
+  7: ventInAnimated,
+  8: magicBoxAnimated,
+  9: ventOutAnimated,
+};
+
+const WALL_IMAGES_STATIC = {
   up: wallUp,
   right: wallRight,
   down: wallDown,
   left: wallLeft,
+};
+
+const WALL_IMAGES_ANIMATED = {
+  up: wallUpAnimated,
+  right: wallRightAnimated,
+  down: wallDownAnimated,
+  left: wallLeftAnimated,
 };
 
 const WALL_CLASS_BY_DIRECTION = {
@@ -127,9 +165,23 @@ export default defineComponent({
     isPortalTile(index) {
       return this.portalPart(index) !== null;
     },
-    tileImage(index) {
+    getTileByIndex(index) {
       const [i, j] = this.store.field.index2d(index);
-      return TILE_IMAGES[this.store.getTile(i, j).type] ?? papers;
+      return this.store.getTile(i, j);
+    },
+    shouldAnimateTile(index) {
+      return this.getTileByIndex(index).visibility == TileVisibility.Opened;
+    },
+    shouldRenderTileImage(index) {
+      return this.getTileByIndex(index).visibility != TileVisibility.Closed;
+    },
+    tileImage(index) {
+      const tile = this.getTileByIndex(index);
+      const images = this.shouldAnimateTile(index)
+        ? TILE_IMAGES_ANIMATED
+        : TILE_IMAGES_STATIC;
+
+      return images[tile.type] ?? TILE_IMAGES_STATIC[tile.type] ?? papers;
     },
     tileImageStyle(index) {
       const part = this.portalPart(index);
@@ -140,6 +192,8 @@ export default defineComponent({
       };
     },
     wallDirections(index) {
+      if (!this.shouldRenderTileImage(index)) return [];
+
       const [i, j] = this.store.field.index2d(index);
       return this.store
         .getTile(i, j)
@@ -148,8 +202,11 @@ export default defineComponent({
         )
         .filter(Boolean);
     },
-    wallImage(direction) {
-      return WALL_IMAGES[direction];
+    wallImage(index, direction) {
+      const images = this.shouldAnimateTile(index)
+        ? WALL_IMAGES_ANIMATED
+        : WALL_IMAGES_STATIC;
+      return images[direction];
     },
   },
 });
@@ -197,8 +254,7 @@ export default defineComponent({
   width: 100%;
   height: 100%;
   pointer-events: none;
-  background-color: transparent;
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
+  object-fit: cover;
+  user-select: none;
 }
 </style>

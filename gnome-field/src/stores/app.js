@@ -34,6 +34,8 @@ const SHUTDOWN_DURATION_MS = 60 * 1000 * 150;
 const VENT_OPEN_DURATION_MS = 60 * 1000 * 15;
 const PROGRESS_STORAGE_KEY = "gnome-field:basement-progress:v1";
 const PROGRESS_STORAGE_VERSION = 1;
+const DEFAULT_RICE_COST = 1;
+const MAX_RICE_COST = 999;
 
 const paintEffectKey = (i, j) => `${i}-${j}`;
 const paintExplosionTimeoutIds = {};
@@ -576,6 +578,7 @@ export const useAppStore = defineStore("app", {
     timeToVentOpen: 0,
     showPrizeVideo: false,
     finished: false,
+    riceCost: DEFAULT_RICE_COST,
     pendingPaintExplosions: {},
     activePaintExplosions: {},
     paintStains: {},
@@ -597,6 +600,7 @@ export const useAppStore = defineStore("app", {
       this.timeToVentOpen = 0;
       this.showPrizeVideo = false;
       this.finished = false;
+      this.riceCost = DEFAULT_RICE_COST;
       this.pendingPaintExplosions = {};
       this.activePaintExplosions = {};
       this.paintStains = {};
@@ -644,6 +648,7 @@ export const useAppStore = defineStore("app", {
         ventCountdownDate: this.ventCountdownDate,
         showPrizeVideo: this.showPrizeVideo,
         finished: this.finished,
+        riceCost: this.riceCost,
         pendingPaintExplosions: this.pendingPaintExplosions,
         paintStains: this.paintStains,
         targetReached: this.field.targetReached,
@@ -691,6 +696,7 @@ export const useAppStore = defineStore("app", {
       this.ventCountdownDate = progress.ventCountdownDate ?? null;
       this.showPrizeVideo = Boolean(progress.showPrizeVideo);
       this.finished = Boolean(progress.finished);
+      this.riceCost = this.normalizeRiceCost(progress.riceCost);
       this.paintStains = progress.paintStains ?? {};
       this.pendingPaintExplosions = {};
       this.activePaintExplosions = {};
@@ -721,8 +727,7 @@ export const useAppStore = defineStore("app", {
       if (oldField != newField) {
         this.steps++;
 
-        if (this.timeToShutdown == 0) this.creditsSpent += 2;
-        else this.creditsSpent += 1;
+        this.creditsSpent += this.riceCost;
 
         let journalMsg = null;
         if (oldTileType == TileTypes.Bomb)
@@ -931,6 +936,21 @@ export const useAppStore = defineStore("app", {
     },
     getCreditsSpent() {
       return this.creditsSpent;
+    },
+    getRiceCost() {
+      return this.riceCost;
+    },
+    normalizeRiceCost(value) {
+      const parsedValue = Number.parseInt(value, 10);
+      if (!Number.isFinite(parsedValue)) return DEFAULT_RICE_COST;
+      return Math.max(1, Math.min(MAX_RICE_COST, parsedValue));
+    },
+    setRiceCost(value) {
+      const nextRiceCost = this.normalizeRiceCost(value);
+      if (nextRiceCost == this.riceCost) return;
+
+      this.riceCost = nextRiceCost;
+      this.saveProgress();
     },
     getJournal() {
       return this.journal;
