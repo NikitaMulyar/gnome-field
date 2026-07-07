@@ -38,7 +38,10 @@
 <script>
 import { defineComponent } from "vue";
 import { TileVisibility, useAppStore, WallDirections } from "@/stores/app";
+import magicBoxAnimated from "@/assets/map-tiles/art-camp/magic-box.gif";
 import scannerAnimated from "@/assets/map-tiles/art-camp/scanner.gif";
+import ventInAnimated from "@/assets/map-tiles/art-camp/vent-in.gif";
+import ventOutAnimated from "@/assets/map-tiles/art-camp/vent-out.gif";
 import waterAnimated from "@/assets/map-tiles/art-camp/water.gif";
 
 const MAP_TILE_ASSETS = import.meta.glob("../assets/map-tiles/art-camp/*.png", {
@@ -80,6 +83,9 @@ const TILE_IMAGES_STATIC = {
 const TILE_IMAGES_ANIMATED = {
   0: waterAnimated,
   6: scannerAnimated,
+  7: ventInAnimated,
+  8: magicBoxAnimated,
+  9: ventOutAnimated,
 };
 
 const ANIMATED_TILE_TYPES = new Set(

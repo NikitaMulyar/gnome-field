@@ -28,7 +28,7 @@ export const TileVisibility = {
   Opened: 4,
 };
 
-const PAINT_EXPLOSION_DELAY_MS = 2000;
+const PAINT_EXPLOSION_DELAY_MS = 1000;
 const PAINT_EXPLOSION_VISIBLE_MS = 850;
 const SHUTDOWN_DURATION_MS = 60 * 1000 * 150;
 const VENT_OPEN_DURATION_MS = 60 * 1000 * 15;
