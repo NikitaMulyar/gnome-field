@@ -5,15 +5,17 @@
     :style="paintEffectStyle"
     class="paint-stain"
     alt=""
+    decoding="async"
     draggable="false"
   />
   <img
-    v-if="explosionVersion"
+    v-if="shouldRenderExplosion"
     :key="explosionVersion"
     :src="paintExplosion"
     :style="paintEffectStyle"
     class="paint-explosion"
     alt=""
+    decoding="async"
     draggable="false"
   />
 </template>
@@ -37,6 +39,9 @@ export default defineComponent({
   computed: {
     explosionVersion() {
       return this.store.getPaintExplosionVersion(this.i, this.j);
+    },
+    shouldRenderExplosion() {
+      return this.explosionVersion && !this.store.getShowPrizeVideo();
     },
     paintEffectStyle() {
       return {

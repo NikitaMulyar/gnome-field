@@ -3,9 +3,7 @@
     <div class="basement-haze" />
     <div class="field-layout">
       <div
-        ref="fieldFrame"
         class="field-frame"
-        :class="{ 'is-map-fullscreen': isMapFullscreen }"
         :style="{
           '--field-frame-columns': store.getWidth() + 2,
           '--field-frame-rows': store.getHeight() + 2,
@@ -27,16 +25,6 @@
         <div class="map-slot">
           <GameField />
         </div>
-        <v-btn
-          class="map-fullscreen-button"
-          :icon="isMapFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"
-          size="x-small"
-          variant="text"
-          density="compact"
-          :aria-label="isMapFullscreen ? 'Выйти из полноэкранной карты' : 'Открыть карту на весь экран'"
-          :title="isMapFullscreen ? 'Выйти из полноэкранной карты' : 'Открыть карту на весь экран'"
-          @click.stop="toggleMapFullscreen"
-        />
       </div>
       <div class="stats-frame">
         <StatsColumn />
@@ -74,52 +62,7 @@ export default defineComponent({
     const store = useAppStore();
     return { store };
   },
-  data: () => ({
-    isMapFullscreen: false,
-  }),
-  mounted() {
-    document.addEventListener("fullscreenchange", this.syncMapFullscreenState);
-    document.addEventListener(
-      "webkitfullscreenchange",
-      this.syncMapFullscreenState
-    );
-  },
-  beforeUnmount() {
-    document.removeEventListener(
-      "fullscreenchange",
-      this.syncMapFullscreenState
-    );
-    document.removeEventListener(
-      "webkitfullscreenchange",
-      this.syncMapFullscreenState
-    );
-  },
   methods: {
-    getFullscreenElement() {
-      return document.fullscreenElement || document.webkitFullscreenElement;
-    },
-    syncMapFullscreenState() {
-      this.isMapFullscreen = this.getFullscreenElement() == this.$refs.fieldFrame;
-    },
-    async toggleMapFullscreen() {
-      const frame = this.$refs.fieldFrame;
-      if (!frame) return;
-
-      try {
-        if (this.getFullscreenElement()) {
-          const exitFullscreen =
-            document.exitFullscreen || document.webkitExitFullscreen;
-          await exitFullscreen?.call(document);
-          return;
-        }
-
-        const requestFullscreen =
-          frame.requestFullscreen || frame.webkitRequestFullscreen;
-        await requestFullscreen?.call(frame);
-      } catch {
-        this.syncMapFullscreenState();
-      }
-    },
     borderTileStyle(index) {
       const columns = this.store.getWidth() + 2;
       const row = Math.floor(index / columns) + 1;
@@ -205,53 +148,6 @@ export default defineComponent({
   grid-row: 2 / span 24;
   min-width: 0;
   min-height: 0;
-}
-
-.map-fullscreen-button {
-  position: absolute;
-  top: 0.35rem;
-  right: 0.35rem;
-  z-index: 14;
-  width: 1.5rem;
-  height: 1.5rem;
-  min-width: 1.5rem;
-  border: 1px solid rgba(240, 191, 114, 0.34);
-  border-radius: 0.12rem;
-  color: #f6dc9b;
-  background: rgba(15, 16, 20, 0.72);
-  opacity: 0.42;
-  transition:
-    opacity 140ms ease,
-    background-color 140ms ease,
-    border-color 140ms ease;
-}
-
-.field-frame:hover .map-fullscreen-button,
-.map-fullscreen-button:focus-visible,
-.field-frame.is-map-fullscreen .map-fullscreen-button {
-  opacity: 1;
-}
-
-.map-fullscreen-button:hover {
-  border-color: rgba(255, 223, 154, 0.58);
-  background: rgba(29, 24, 24, 0.88);
-}
-
-.field-frame:fullscreen,
-.field-frame:-webkit-full-screen {
-  position: fixed;
-  inset: 0;
-  width: min(100vw, 130.769vh);
-  height: min(100vh, 76.471vw);
-  max-width: none;
-  margin: auto;
-  border-radius: 0;
-  background-color: #111217;
-}
-
-.field-frame:fullscreen::before,
-.field-frame:-webkit-full-screen::before {
-  display: none;
 }
 
 .field-hover-band {

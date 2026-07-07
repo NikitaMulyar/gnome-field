@@ -2,7 +2,17 @@
   <div class="stats-column">
     <div class="journal-pin" />
     <v-btn
-      class="reset-progress-button"
+      class="stats-action-button fullscreen-button"
+      :icon="fullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"
+      size="x-small"
+      variant="text"
+      density="compact"
+      :aria-label="fullscreen ? 'Выйти из полноэкранного режима' : 'Открыть сайт на весь экран'"
+      :title="fullscreen ? 'Выйти из полноэкранного режима' : 'Открыть сайт на весь экран'"
+      @click.stop="toggleFullscreen"
+    />
+    <v-btn
+      class="stats-action-button reset-progress-button"
       icon="mdi-refresh"
       size="x-small"
       variant="text"
@@ -94,6 +104,18 @@ export default defineComponent({
   },
   mounted() {
     this.syncRiceCostDraft();
+    document.addEventListener("fullscreenchange", this.syncFullscreenState);
+    document.addEventListener(
+      "webkitfullscreenchange",
+      this.syncFullscreenState
+    );
+  },
+  beforeUnmount() {
+    document.removeEventListener("fullscreenchange", this.syncFullscreenState);
+    document.removeEventListener(
+      "webkitfullscreenchange",
+      this.syncFullscreenState
+    );
   },
   watch: {
     "store.riceCost"() {
@@ -167,29 +189,26 @@ export default defineComponent({
           return "неизвестно";
       }
     },
-    toggleFullscreen() {
-      this.fullscreen = !this.fullscreen;
-      const elem = document.documentElement;
-      if (this.fullscreen) {
-        if (elem.requestFullscreen) {
-          elem.requestFullscreen();
-        } else if (elem.webkitRequestFullscreen) {
-          /* Safari */
-          elem.webkitRequestFullscreen();
-        } else if (elem.msRequestFullscreen) {
-          /* IE11 */
-          elem.msRequestFullscreen();
+    getFullscreenElement() {
+      return document.fullscreenElement || document.webkitFullscreenElement;
+    },
+    syncFullscreenState() {
+      this.fullscreen = this.getFullscreenElement() == document.documentElement;
+    },
+    async toggleFullscreen() {
+      try {
+        if (this.getFullscreenElement()) {
+          const exitFullscreen =
+            document.exitFullscreen || document.webkitExitFullscreen;
+          await exitFullscreen?.call(document);
+        } else {
+          const elem = document.documentElement;
+          const requestFullscreen =
+            elem.requestFullscreen || elem.webkitRequestFullscreen;
+          await requestFullscreen?.call(elem);
         }
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-          /* Safari */
-          document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) {
-          /* IE11 */
-          document.msExitFullscreen();
-        }
+      } catch {
+        this.syncFullscreenState();
       }
     },
     resetProgress() {
@@ -247,7 +266,7 @@ export default defineComponent({
 .journal-pin {
   position: absolute;
   top: 0.7rem;
-  right: 2.25rem;
+  right: 3.45rem;
   width: 1.1rem;
   height: 1.1rem;
   border-radius: 50%;
@@ -259,10 +278,9 @@ export default defineComponent({
     inset 0 -0.1rem 0 rgba(65, 23, 20, 0.35);
 }
 
-.reset-progress-button {
+.stats-action-button {
   position: absolute;
   top: 0.62rem;
-  right: 0.72rem;
   z-index: 2;
   width: 1.18rem !important;
   height: 1.18rem !important;
@@ -276,19 +294,27 @@ export default defineComponent({
     0 0.1rem 0.22rem rgba(0, 0, 0, 0.28);
 }
 
-.reset-progress-button:hover {
+.fullscreen-button {
+  right: 2.08rem;
+}
+
+.reset-progress-button {
+  right: 0.72rem;
+}
+
+.stats-action-button:hover {
   color: #f0bf72;
   border-color: rgba(240, 191, 114, 0.5);
   background: rgba(35, 25, 20, 0.72);
 }
 
-.reset-progress-button :deep(.v-icon) {
+.stats-action-button :deep(.v-icon) {
   font-size: 0.72rem;
 }
 
 .stats-column h1 {
   position: relative;
-  margin: 0 2rem 1rem 0;
+  margin: 0 3.25rem 1rem 0;
   color: #f0bf72;
   cursor: pointer;
   font-size: 1.8rem;

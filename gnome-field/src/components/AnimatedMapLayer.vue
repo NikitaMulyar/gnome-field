@@ -18,6 +18,7 @@
         :class="{ 'tile-image-portal': isPortalTile(index - 1) }"
         :style="tileImageStyle(index - 1)"
         alt=""
+        decoding="async"
         draggable="false"
       />
       <img
@@ -27,6 +28,7 @@
         :class="`wall-${direction}`"
         :src="wallImage(index - 1, direction)"
         alt=""
+        decoding="async"
         draggable="false"
       />
     </div>
@@ -36,14 +38,13 @@
 <script>
 import { defineComponent } from "vue";
 import { TileVisibility, useAppStore, WallDirections } from "@/stores/app";
+import scannerAnimated from "@/assets/map-tiles/art-camp/scanner.gif";
+import waterAnimated from "@/assets/map-tiles/art-camp/water.gif";
 
-const MAP_TILE_ASSETS = import.meta.glob(
-  "../assets/map-tiles/art-camp/*.{gif,png}",
-  {
-    eager: true,
-    import: "default",
-  }
-);
+const MAP_TILE_ASSETS = import.meta.glob("../assets/map-tiles/art-camp/*.png", {
+  eager: true,
+  import: "default",
+});
 
 const tileAsset = (filename) =>
   MAP_TILE_ASSETS[`../assets/map-tiles/art-camp/${filename}`];
@@ -52,25 +53,16 @@ const basementDoor = tileAsset("basement-door.png");
 const chemicalFlasks = tileAsset("chemical-flasks.png");
 const cardboard = tileAsset("cardboard.png");
 const magicBox = tileAsset("magic-box.png");
-const magicBoxAnimated = tileAsset("magic-box.gif") ?? magicBox;
 const paintCan = tileAsset("paint-can.png");
 const papers = tileAsset("papers.png");
 const scanner = tileAsset("scanner.png");
-const scannerAnimated = tileAsset("scanner.gif") ?? scanner;
 const ventIn = tileAsset("vent-in.png");
-const ventInAnimated = tileAsset("vent-in.gif") ?? ventIn;
 const ventOut = tileAsset("vent-out.png");
-const ventOutAnimated = tileAsset("vent-out.gif") ?? ventOut;
 const water = tileAsset("water.png");
-const waterAnimated = tileAsset("water.gif") ?? water;
 const wallDown = tileAsset("wall-down.png");
-const wallDownAnimated = tileAsset("wall-down.gif") ?? wallDown;
 const wallLeft = tileAsset("wall-left.png");
-const wallLeftAnimated = tileAsset("wall-left.gif") ?? wallLeft;
 const wallRight = tileAsset("wall-right.png");
-const wallRightAnimated = tileAsset("wall-right.gif") ?? wallRight;
 const wallUp = tileAsset("wall-up.png");
-const wallUpAnimated = tileAsset("wall-up.gif") ?? wallUp;
 
 const TILE_IMAGES_STATIC = {
   0: water,
@@ -88,23 +80,17 @@ const TILE_IMAGES_STATIC = {
 const TILE_IMAGES_ANIMATED = {
   0: waterAnimated,
   6: scannerAnimated,
-  7: ventInAnimated,
-  8: magicBoxAnimated,
-  9: ventOutAnimated,
 };
+
+const ANIMATED_TILE_TYPES = new Set(
+  Object.keys(TILE_IMAGES_ANIMATED).map(Number)
+);
 
 const WALL_IMAGES_STATIC = {
   up: wallUp,
   right: wallRight,
   down: wallDown,
   left: wallLeft,
-};
-
-const WALL_IMAGES_ANIMATED = {
-  up: wallUpAnimated,
-  right: wallRightAnimated,
-  down: wallDownAnimated,
-  left: wallLeftAnimated,
 };
 
 const WALL_CLASS_BY_DIRECTION = {
@@ -126,6 +112,9 @@ export default defineComponent({
     },
     height() {
       return this.store.getHeight();
+    },
+    animationsPaused() {
+      return this.store.getShowPrizeVideo();
     },
   },
   methods: {
@@ -170,7 +159,12 @@ export default defineComponent({
       return this.store.getTile(i, j);
     },
     shouldAnimateTile(index) {
-      return this.getTileByIndex(index).visibility == TileVisibility.Opened;
+      const tile = this.getTileByIndex(index);
+      return (
+        !this.animationsPaused &&
+        tile.visibility == TileVisibility.Opened &&
+        ANIMATED_TILE_TYPES.has(tile.type)
+      );
     },
     shouldRenderTileImage(index) {
       return this.getTileByIndex(index).visibility != TileVisibility.Closed;
@@ -202,11 +196,8 @@ export default defineComponent({
         )
         .filter(Boolean);
     },
-    wallImage(index, direction) {
-      const images = this.shouldAnimateTile(index)
-        ? WALL_IMAGES_ANIMATED
-        : WALL_IMAGES_STATIC;
-      return images[direction];
+    wallImage(_index, direction) {
+      return WALL_IMAGES_STATIC[direction];
     },
   },
 });
@@ -228,6 +219,7 @@ export default defineComponent({
   position: relative;
   min-width: 0;
   min-height: 0;
+  contain: strict;
   overflow: hidden;
   background: #101218;
 }
