@@ -1,6 +1,16 @@
 <template>
   <div class="stats-column">
     <div class="journal-pin" />
+    <v-btn
+      class="reset-progress-button"
+      icon="mdi-refresh"
+      size="x-small"
+      variant="text"
+      density="compact"
+      aria-label="Сбросить прохождение"
+      title="Сбросить прохождение"
+      @click.stop="resetProgress"
+    />
     <h1 @click="toggleFullscreen()">Подвалище</h1>
     <section class="rice-ledger">
       <div class="rice-row">
@@ -113,6 +123,9 @@ export default defineComponent({
         }
       }
     },
+    resetProgress() {
+      this.store.resetProgress();
+    },
   },
 });
 </script>
@@ -165,7 +178,7 @@ export default defineComponent({
 .journal-pin {
   position: absolute;
   top: 0.7rem;
-  right: 1.05rem;
+  right: 2.25rem;
   width: 1.1rem;
   height: 1.1rem;
   border-radius: 50%;
@@ -175,6 +188,33 @@ export default defineComponent({
   box-shadow:
     0 0.12rem 0.25rem rgba(0, 0, 0, 0.55),
     inset 0 -0.1rem 0 rgba(65, 23, 20, 0.35);
+}
+
+.reset-progress-button {
+  position: absolute;
+  top: 0.62rem;
+  right: 0.72rem;
+  z-index: 2;
+  width: 1.18rem !important;
+  height: 1.18rem !important;
+  min-width: 1.18rem !important;
+  border: 1px solid rgba(240, 191, 114, 0.22);
+  border-radius: 0.12rem;
+  color: rgba(244, 224, 179, 0.78);
+  background: rgba(8, 9, 13, 0.36);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035),
+    0 0.1rem 0.22rem rgba(0, 0, 0, 0.28);
+}
+
+.reset-progress-button:hover {
+  color: #f0bf72;
+  border-color: rgba(240, 191, 114, 0.5);
+  background: rgba(35, 25, 20, 0.72);
+}
+
+.reset-progress-button :deep(.v-icon) {
+  font-size: 0.72rem;
 }
 
 .stats-column h1 {
