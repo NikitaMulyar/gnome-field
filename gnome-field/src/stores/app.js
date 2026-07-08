@@ -731,7 +731,7 @@ export const useAppStore = defineStore("app", {
 
         let journalMsg = null;
         if (oldTileType == TileTypes.Bomb)
-          journalMsg = "Банка треснула. Красное пятно через 2 секунды!";
+          journalMsg = "Банка треснула. Красное пятно через 1 секунду!";
         else if (oldTileType == TileTypes.PortalEntrance)
           journalMsg = "Живокрысик нырнул в вентиляционную трубу.";
         else if (oldTileType == TileTypes.Mole)
