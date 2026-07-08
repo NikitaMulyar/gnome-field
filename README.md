@@ -103,7 +103,7 @@ yarn build
 | `0` | вода |
 | `1` | разбросанные листочки |
 | `2` | дверь в подвал |
-| `3` | булочка |
+| `3` | химические колбы |
 | `4` | банка краски |
 | `5` | картон |
 | `6` | сканер |
@@ -115,19 +115,25 @@ yarn build
 
 ## Анимации
 
-В самой карте анимируются только:
+В самой карте анимируются:
 
 - вода: `water.gif`;
 - сканер: `scanner.gif`;
+- вход в вентиляцию: `vent-in.gif`;
+- выход из вентиляции: `vent-out.gif`;
+- волшебная коробка: `magic-box.gif`;
 - взрыв банки краски: `paint-explosion.gif`.
 
 После взрыва банка оставляет статичное красное пятно `paint-stain.png`.
 
-## Деплой
+## Деплой На GitHub Pages
 
-```bash
-cd gnome-field
-./deploy.sh
+Основной способ деплоя - GitHub Actions workflow:
+
+```text
+.github/workflows/deploy-pages.yml
 ```
 
-Скрипт собирает приложение с `VITE_BASE_PATH=/gnome-field/`, копирует `index.html` в `404.html` для SPA fallback и пушит `dist/` в `gh-pages`.
+Подробная инструкция: [GITHUB_PAGES.md](GITHUB_PAGES.md).
+
+Сборка использует `VITE_BASE_PATH=/gnome-field/`, копирует `index.html` в `404.html` для SPA fallback и публикует `gnome-field/dist` через GitHub Pages Actions.
