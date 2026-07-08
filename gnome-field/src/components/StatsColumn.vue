@@ -1,6 +1,5 @@
 <template>
   <div class="stats-column">
-    <div class="journal-pin" />
     <v-btn
       class="stats-action-button fullscreen-button"
       :icon="fullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"
@@ -245,37 +244,10 @@ export default defineComponent({
     center,
     center;
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
     inset 0 0 2rem rgba(0, 0, 0, 0.28),
     0 0.9rem 2.2rem rgba(0, 0, 0, 0.34);
   color: #f4e0b3;
   font-family: monospace;
-}
-
-.stats-column::before {
-  content: "";
-  position: absolute;
-  inset: 0.45rem;
-  pointer-events: none;
-  border: 1px solid rgba(234, 191, 113, 0.14);
-  box-shadow:
-    inset 0 0 1rem rgba(0, 0, 0, 0.28),
-    inset 0 0 0 0.35rem rgba(10, 10, 14, 0.16);
-}
-
-.journal-pin {
-  position: absolute;
-  top: 0.7rem;
-  right: 3.45rem;
-  width: 1.1rem;
-  height: 1.1rem;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 35%, #fff2c6 0 16%, transparent 17%),
-    #b94237;
-  box-shadow:
-    0 0.12rem 0.25rem rgba(0, 0, 0, 0.55),
-    inset 0 -0.1rem 0 rgba(65, 23, 20, 0.35);
 }
 
 .stats-action-button {

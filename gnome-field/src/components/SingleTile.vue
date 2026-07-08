@@ -97,14 +97,12 @@ export default defineComponent({
 
 .tile::before {
   content: "";
+  display: none;
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    linear-gradient(135deg, rgba(255, 236, 180, 0.012), rgba(0, 0, 0, 0.2)),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.008), rgba(0, 0, 0, 0.12));
-  background-size: 100% 100%;
+  background: transparent;
   opacity: 0.5;
 }
 

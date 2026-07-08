@@ -4,14 +4,7 @@
     <div class="field-layout">
       <div
         class="field-frame"
-        :style="{
-          '--field-frame-columns': store.getWidth() + 2,
-          '--field-frame-rows': store.getHeight() + 2,
-          aspectRatio: (store.getWidth() + 2) / (store.getHeight() + 2),
-          display: `grid`,
-          gridTemplateColumns: `repeat(${store.getWidth() + 2}, minmax(0, 1fr))`,
-          gridTemplateRows: `repeat(${store.getHeight() + 2}, minmax(0, 1fr))`,
-        }"
+        :style="fieldFrameStyle"
       >
         <div class="field-hover-band field-hover-row" />
         <div class="field-hover-band field-hover-column" />
@@ -22,7 +15,7 @@
         >
           <BorderTile :index="i - 1" />
         </div>
-        <div class="map-slot">
+        <div class="map-slot" :style="mapSlotStyle">
           <GameField />
         </div>
       </div>
@@ -61,6 +54,31 @@ export default defineComponent({
   setup() {
     const store = useAppStore();
     return { store };
+  },
+  computed: {
+    frameColumns() {
+      return this.store.getWidth() + 2;
+    },
+    frameRows() {
+      return this.store.getHeight() + 2;
+    },
+    fieldFrameStyle() {
+      return {
+        "--field-frame-columns": this.frameColumns,
+        "--field-frame-rows": this.frameRows,
+        aspectRatio: `${this.frameColumns} / ${this.frameRows}`,
+        display: "grid",
+        gridTemplateColumns: `repeat(${this.frameColumns}, minmax(0, 1fr))`,
+        gridTemplateRows: `repeat(${this.frameRows}, minmax(0, 1fr))`,
+        width: `min(100%, calc((100vh - 2.6rem) * ${this.frameColumns} / ${this.frameRows}))`,
+      };
+    },
+    mapSlotStyle() {
+      return {
+        gridColumn: `2 / span ${this.store.getWidth()}`,
+        gridRow: `2 / span ${this.store.getHeight()}`,
+      };
+    },
   },
   methods: {
     borderTileStyle(index) {
@@ -120,20 +138,12 @@ export default defineComponent({
 
 .field-frame {
   position: relative;
-  width: min(100%, calc((100vh - 2.6rem) * 34 / 26));
   margin: 0 auto;
   padding: 0;
-  border: 0.45rem solid #3f2f24;
+  border: 0.35rem solid #3f2f24;
   border-radius: 0.35rem;
-  box-shadow:
-    0 1.2rem 2.8rem rgba(0, 0, 0, 0.52),
-    0 0 0 1px rgba(229, 179, 100, 0.28),
-    inset 0 0 0 0.18rem rgba(114, 72, 38, 0.6);
-  background:
-    linear-gradient(90deg, rgba(84, 55, 32, 0.32) 0 1px, transparent 1px 100%),
-    linear-gradient(0deg, rgba(255, 231, 174, 0.1) 0 1px, transparent 1px 100%),
-    linear-gradient(135deg, #7a5833, #be8e4f 48%, #6b482a);
-  background-size: 1.1rem 1.1rem, 1.1rem 1.1rem, auto;
+  box-shadow: 0 1rem 2.1rem rgba(0, 0, 0, 0.42);
+  background: #7a5833;
 }
 
 .field-frame > div:not(.field-hover-band):not(.map-slot) {
@@ -144,8 +154,6 @@ export default defineComponent({
 .map-slot {
   position: relative;
   z-index: 2;
-  grid-column: 2 / span 32;
-  grid-row: 2 / span 24;
   min-width: 0;
   min-height: 0;
 }
@@ -176,23 +184,6 @@ export default defineComponent({
 
 .field-frame.is-cell-hovered .field-hover-band {
   opacity: 1;
-}
-
-.field-frame::before {
-  content: "";
-  position: absolute;
-  pointer-events: none;
-}
-
-.field-frame::before {
-  inset: -0.95rem -0.75rem;
-  z-index: -1;
-  border-radius: 0.45rem;
-  background:
-    linear-gradient(90deg, transparent 0 1.2rem, rgba(241, 204, 137, 0.22) 1.2rem 1.5rem, transparent 1.5rem),
-    linear-gradient(0deg, transparent 0 1.2rem, rgba(55, 34, 24, 0.34) 1.2rem 1.5rem, transparent 1.5rem),
-    #221a18;
-  box-shadow: 0 0.35rem 1.1rem rgba(0, 0, 0, 0.52);
 }
 
 .stats-frame {
