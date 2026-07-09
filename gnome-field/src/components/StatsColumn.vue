@@ -30,8 +30,8 @@
             v-model="riceCostDraft"
             class="rice-cost-input"
             type="text"
-            inputmode="numeric"
-            pattern="[0-9]*"
+            inputmode="decimal"
+            pattern="[0-9]+([,.][0-9]{0,2})?"
             aria-label="Количество риса за открытие клетки"
             title="Количество риса за открытие клетки"
             @focus="selectRiceCost"
@@ -48,7 +48,7 @@
       </div>
       <div class="rice-row">
         <span>Потрачено риса</span>
-        <strong>{{ store.getCreditsSpent() }}</strong>
+        <strong>{{ creditsSpentDisplay }}</strong>
       </div>
     </section>
     <h3>Журнал живокрысика</h3>
@@ -94,11 +94,11 @@ export default defineComponent({
       return [...this.store.getJournal()].reverse();
     },
     riceCostUnit() {
-      const value = Number.parseInt(
-        this.riceCostDraft || String(this.store.getRiceCost()),
-        10
-      );
+      const value = this.riceCostDraft || String(this.store.getRiceCost());
       return this.getRiceUnit(value);
+    },
+    creditsSpentDisplay() {
+      return this.store.formatRiceAmount(this.store.getCreditsSpent());
     },
   },
   mounted() {
@@ -123,10 +123,34 @@ export default defineComponent({
   },
   methods: {
     syncRiceCostDraft() {
-      this.riceCostDraft = String(this.store.getRiceCost());
+      this.riceCostDraft = this.store.formatRiceAmount(this.store.getRiceCost());
+    },
+    normalizeRiceDraft(value) {
+      return String(value)
+        .replace(/[^\d,.]/g, "")
+        .replace(/\./g, ",");
+    },
+    parseRiceDraft(value) {
+      return Number.parseFloat(String(value).replace(",", "."));
     },
     sanitizeRiceCostInput(value) {
-      return value.replace(/\D/g, "").slice(0, 3);
+      const normalizedValue = this.normalizeRiceDraft(value);
+      const [integerPart = "", ...fractionParts] = normalizedValue.split(",");
+      const cleanInteger = integerPart.replace(/^0+(?=\d)/, "").slice(0, 3);
+      const cleanFraction = fractionParts.join("").slice(0, 2);
+
+      if (normalizedValue.includes(","))
+        return `${cleanInteger || "0"},${cleanFraction}`;
+
+      return cleanInteger;
+    },
+    isCompleteRiceCostInput(value) {
+      const parsedValue = this.parseRiceDraft(value);
+      return (
+        /^\d+(?:[,.]\d+)?$/.test(value) &&
+        Number.isFinite(parsedValue) &&
+        parsedValue > 0
+      );
     },
     selectRiceCost(event) {
       event.target.select();
@@ -134,23 +158,25 @@ export default defineComponent({
     updateRiceCost() {
       const cleanValue = this.sanitizeRiceCostInput(this.riceCostDraft);
       this.riceCostDraft = cleanValue;
-      if (cleanValue && Number.parseInt(cleanValue, 10) > 0)
+      if (this.isCompleteRiceCostInput(cleanValue))
         this.store.setRiceCost(cleanValue);
     },
     commitRiceCost(event) {
-      if (!this.riceCostDraft) {
+      if (!this.isCompleteRiceCostInput(this.riceCostDraft)) {
         this.syncRiceCostDraft();
       } else {
         const normalizedCost = this.store.normalizeRiceCost(
           this.riceCostDraft
         );
-        this.riceCostDraft = String(normalizedCost);
+        this.riceCostDraft = this.store.formatRiceAmount(normalizedCost);
         this.store.setRiceCost(normalizedCost);
       }
       event?.target?.blur?.();
     },
     getRiceUnit(value) {
-      const normalizedValue = Math.abs(Number.isFinite(value) ? value : 1);
+      const normalizedValue = Math.abs(this.store.normalizeRiceCost(value));
+      if (!Number.isInteger(normalizedValue)) return "риса";
+
       const lastTwoDigits = normalizedValue % 100;
       const lastDigit = normalizedValue % 10;
 
@@ -342,7 +368,7 @@ export default defineComponent({
 }
 
 .rice-cost-input {
-  width: 2.2rem;
+  width: 3.7rem;
   margin: 0;
   padding: 0;
   border: 0;
