@@ -5,7 +5,7 @@ export const TileTypes = {
   Water: 0,
   Stone: 1,
   Entrance: 2,
-  Cliff: 3,
+  Bricks: 3,
   Bomb: 4,
   Sand: 5,
   Mole: 6,
@@ -237,7 +237,7 @@ export class Field {
     const down = this.get(i + 1, j);
     const current = this.get(i, j);
 
-    if (current.type == TileTypes.Cliff)
+    if (current.type == TileTypes.Bricks)
       this.tiles[this.index(i, j)].setVisibility(TileVisibility.Opened);
 
     for (let dir of Object.values(WallDirections)) {
@@ -247,25 +247,25 @@ export class Field {
           i > 0 &&
           up.isOpened() &&
           up.type != TileTypes.Water &&
-          up.type != TileTypes.Cliff &&
+          up.type != TileTypes.Bricks &&
           !up.hasWall(WallDirections.Down)) ||
         (dir == WallDirections.Right &&
           j < this.width - 1 &&
           right.isOpened() &&
           right.type != TileTypes.Water &&
-          right.type != TileTypes.Cliff &&
+          right.type != TileTypes.Bricks &&
           !right.hasWall(WallDirections.Left)) ||
         (dir == WallDirections.Down &&
           i < this.height - 1 &&
           down.isOpened() &&
           down.type != TileTypes.Water &&
-          down.type != TileTypes.Cliff &&
+          down.type != TileTypes.Bricks &&
           !down.hasWall(WallDirections.Up)) ||
         (dir == WallDirections.Left &&
           j > 0 &&
           left.isOpened() &&
           left.type != TileTypes.Water &&
-          left.type != TileTypes.Cliff &&
+          left.type != TileTypes.Bricks &&
           !left.hasWall(WallDirections.Right))
       ) {
         this.tiles[this.index(i, j)].setVisibility(TileVisibility.Opened);
@@ -325,7 +325,7 @@ export class Field {
     const down = this.get(i + 1, j);
 
     if (
-      this.get(i, j).type == TileTypes.Cliff &&
+      this.get(i, j).type == TileTypes.Bricks &&
       this.get(i, j).visibility == TileVisibility.Revealed &&
       (left.isOpened() || right.isOpened() || up.isOpened() || down.isOpened())
     )
@@ -334,19 +334,19 @@ export class Field {
     return (
       (left.isOpened() &&
         left.type != TileTypes.Water &&
-        left.type != TileTypes.Cliff &&
+        left.type != TileTypes.Bricks &&
         !left.hasWall(WallDirections.Right)) ||
       (right.isOpened() &&
         right.type != TileTypes.Water &&
-        right.type != TileTypes.Cliff &&
+        right.type != TileTypes.Bricks &&
         !right.hasWall(WallDirections.Left)) ||
       (down.isOpened() &&
         down.type != TileTypes.Water &&
-        down.type != TileTypes.Cliff &&
+        down.type != TileTypes.Bricks &&
         !down.hasWall(WallDirections.Up)) ||
       (up.isOpened() &&
         up.type != TileTypes.Water &&
-        up.type != TileTypes.Cliff &&
+        up.type != TileTypes.Bricks &&
         !up.hasWall(WallDirections.Down))
     );
   }
