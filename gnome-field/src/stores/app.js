@@ -35,7 +35,10 @@ const VENT_OPEN_DURATION_MS = 60 * 1000 * 15;
 const PROGRESS_STORAGE_KEY = "gnome-field:basement-progress:v1";
 const PROGRESS_STORAGE_VERSION = 1;
 const DEFAULT_RICE_COST = 1;
+const MIN_RICE_COST = 0.01;
 const MAX_RICE_COST = 999;
+const RICE_DECIMAL_PLACES = 2;
+const RICE_SCALE = 10 ** RICE_DECIMAL_PLACES;
 
 const paintEffectKey = (i, j) => `${i}-${j}`;
 const paintExplosionTimeoutIds = {};
@@ -78,6 +81,24 @@ const clearPaintExplosionTimeouts = () => {
   for (const key of Object.keys(paintExplosionTimeoutIds)) {
     clearPaintExplosionTimeout(key);
   }
+};
+const parseRiceValue = (value) => {
+  if (typeof value === "string") {
+    return Number.parseFloat(value.replace(",", "."));
+  }
+  return Number(value);
+};
+const roundRiceValue = (value) =>
+  Math.round((value + Number.EPSILON) * RICE_SCALE) / RICE_SCALE;
+const formatRiceValue = (value) => {
+  const roundedValue = roundRiceValue(Number(value) || 0);
+  if (Number.isInteger(roundedValue)) return String(roundedValue);
+
+  return roundedValue
+    .toFixed(RICE_DECIMAL_PLACES)
+    .replace(/0+$/, "")
+    .replace(/\.$/, "")
+    .replace(".", ",");
 };
 
 export class Tile {
@@ -642,7 +663,7 @@ export const useAppStore = defineStore("app", {
         mapSignature: mapSignatureKey(this.field),
         steps: this.steps,
         countDownDate: this.countDownDate,
-        creditsSpent: this.creditsSpent,
+        creditsSpent: roundRiceValue(this.creditsSpent),
         journal: this.journal,
         drillInitialized: this.drillInitialized,
         ventCountdownDate: this.ventCountdownDate,
@@ -690,7 +711,7 @@ export const useAppStore = defineStore("app", {
 
       this.steps = progress.steps ?? 1;
       this.countDownDate = progress.countDownDate ?? new Date().getTime();
-      this.creditsSpent = progress.creditsSpent ?? 0;
+      this.creditsSpent = roundRiceValue(Number(progress.creditsSpent) || 0);
       this.journal = Array.isArray(progress.journal) ? progress.journal : [];
       this.drillInitialized = Boolean(progress.drillInitialized);
       this.ventCountdownDate = progress.ventCountdownDate ?? null;
@@ -727,7 +748,7 @@ export const useAppStore = defineStore("app", {
       if (oldField != newField) {
         this.steps++;
 
-        this.creditsSpent += this.riceCost;
+        this.creditsSpent = roundRiceValue(this.creditsSpent + this.riceCost);
 
         let journalMsg = null;
         if (oldTileType == TileTypes.Bomb)
@@ -941,9 +962,15 @@ export const useAppStore = defineStore("app", {
       return this.riceCost;
     },
     normalizeRiceCost(value) {
-      const parsedValue = Number.parseInt(value, 10);
+      const parsedValue = parseRiceValue(value);
       if (!Number.isFinite(parsedValue)) return DEFAULT_RICE_COST;
-      return Math.max(1, Math.min(MAX_RICE_COST, parsedValue));
+      return Math.max(
+        MIN_RICE_COST,
+        Math.min(MAX_RICE_COST, roundRiceValue(parsedValue))
+      );
+    },
+    formatRiceAmount(value) {
+      return formatRiceValue(value);
     },
     setRiceCost(value) {
       const nextRiceCost = this.normalizeRiceCost(value);
