@@ -196,8 +196,8 @@ export default defineComponent({
           return "листочки";
         case TileTypes.Entrance:
           return "дверь в подвал";
-        case TileTypes.Cliff:
-          return "химические колбы";
+        case TileTypes.Bricks:
+          return "кирпичные стены";
         case TileTypes.Bomb:
           return "банка краски";
         case TileTypes.Sand:

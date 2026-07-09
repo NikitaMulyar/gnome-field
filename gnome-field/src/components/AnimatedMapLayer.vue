@@ -53,7 +53,7 @@ const tileAsset = (filename) =>
   MAP_TILE_ASSETS[`../assets/map-tiles/art-camp/${filename}`];
 
 const basementDoor = tileAsset("basement-door.png");
-const chemicalFlasks = tileAsset("chemical-flasks.png");
+const bricks = tileAsset("bricks.png");
 const cardboard = tileAsset("cardboard.png");
 const magicBox = tileAsset("magic-box.png");
 const paintCan = tileAsset("paint-can.png");
@@ -71,7 +71,7 @@ const TILE_IMAGES_STATIC = {
   0: water,
   1: papers,
   2: basementDoor,
-  3: chemicalFlasks,
+  3: bricks,
   4: paintCan,
   5: cardboard,
   6: scanner,
