@@ -45,7 +45,7 @@ export default defineComponent({
 <style scoped>
 .border-tile {
   background-color: v-bind("color");
-  border: solid 1px rgba(216, 170, 96, 0.62);
+  border: solid 1px rgba(173, 136, 77, 0.62);
   aspect-ratio: 1;
   width: 100%;
   text-align: center;
@@ -54,20 +54,15 @@ export default defineComponent({
   color: #f1d99c;
   font-size: 0.92rem;
   text-shadow: 0 0.12rem 0 rgba(0, 0, 0, 0.45);
-  background-image:
-    linear-gradient(135deg, rgba(255, 229, 165, 0.07), transparent 46%),
-    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.22), transparent 68%);
-  box-shadow: inset 0 0 0 1px rgba(20, 13, 10, 0.24);
+  background-image: none;
+  box-shadow: none;
   transition:
     background-color 140ms ease,
-    color 140ms ease,
-    box-shadow 140ms ease;
+    color 140ms ease;
 }
 
 .border-tile:hover {
   color: #fff0bd;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 226, 155, 0.28),
-    0 0 0.35rem rgba(215, 159, 69, 0.28);
+  box-shadow: none;
 }
 </style>
