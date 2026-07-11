@@ -14,6 +14,12 @@ import "video.js/dist/video-js.css";
 
 export default defineComponent({
   name: "PrizeVideoPlayer",
+  props: {
+    source: {
+      type: String,
+      required: true,
+    },
+  },
   setup() {
     return {};
   },
@@ -23,21 +29,34 @@ export default defineComponent({
       autoplay: false,
       controls: true,
       preload: "auto",
-      sources: [
-        {
-          src: `${import.meta.env.BASE_URL}prize.mp4`,
-          type: "video/mp4",
-        },
-      ],
+      sources: [],
     },
   }),
   mounted() {
+    this.options.sources = [this.videoSource(this.source)];
     this.player = videojs(this.$refs.videoPlayer, this.options);
   },
   beforeUnmount() {
     if (this.player) {
       this.player.dispose();
     }
+  },
+  watch: {
+    source(nextSource) {
+      if (!this.player || !nextSource) return;
+
+      this.player.pause();
+      this.player.src(this.videoSource(nextSource));
+      this.player.load();
+    },
+  },
+  methods: {
+    videoSource(source) {
+      return {
+        src: source,
+        type: "video/mp4",
+      };
+    },
   },
 });
 </script>

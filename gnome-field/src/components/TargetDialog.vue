@@ -5,6 +5,9 @@
       :class="{ 'target-card--video': store.getShowPrizeVideo() }"
       elevation="24"
     >
+      <div class="target-video-choice">
+        <PrizeVideoSelector />
+      </div>
       <div v-if="!store.getShowPrizeVideo()">
         <v-card-title>
           <h1>Коробка найдена</h1>
@@ -23,7 +26,7 @@
       </div>
       <div v-if="store.getShowPrizeVideo()" class="target-video-state">
         <div class="prize-video-shell">
-          <PrizeVideoPlayer />
+          <PrizeVideoPlayer :source="store.getPrizeVideoSource()" />
         </div>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -81,6 +84,14 @@ export default defineComponent({
 
 .target-card--video {
   width: min(84vw, 74rem);
+}
+
+.target-video-choice {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 1.72rem;
+  padding: 0.34rem 0.7rem 0;
 }
 
 .target-video-state {

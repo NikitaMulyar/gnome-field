@@ -28,6 +28,11 @@ export const TileVisibility = {
   Opened: 4,
 };
 
+export const PrizeVideoVariants = {
+  Sun: "sun",
+  Cloud: "cloud",
+};
+
 const PAINT_EXPLOSION_DELAY_MS = 1000;
 const PAINT_EXPLOSION_VISIBLE_MS = 850;
 const SHUTDOWN_DURATION_MS = 60 * 1000 * 150;
@@ -39,6 +44,11 @@ const MIN_RICE_COST = 0.01;
 const MAX_RICE_COST = 999;
 const RICE_DECIMAL_PLACES = 2;
 const RICE_SCALE = 10 ** RICE_DECIMAL_PLACES;
+const DEFAULT_PRIZE_VIDEO_VARIANT = PrizeVideoVariants.Sun;
+const PRIZE_VIDEO_FILES = {
+  [PrizeVideoVariants.Sun]: "prize-lmsh-2026-sun.mp4",
+  [PrizeVideoVariants.Cloud]: "prize-lmsh-2026-rain.mp4",
+};
 
 const paintEffectKey = (i, j) => `${i}-${j}`;
 const paintExplosionTimeoutIds = {};
@@ -90,6 +100,10 @@ const parseRiceValue = (value) => {
 };
 const roundRiceValue = (value) =>
   Math.round((value + Number.EPSILON) * RICE_SCALE) / RICE_SCALE;
+const normalizePrizeVideoVariant = (variant) =>
+  Object.values(PrizeVideoVariants).includes(variant)
+    ? variant
+    : DEFAULT_PRIZE_VIDEO_VARIANT;
 const formatRiceValue = (value) => {
   const roundedValue = roundRiceValue(Number(value) || 0);
   if (Number.isInteger(roundedValue)) return String(roundedValue);
@@ -598,6 +612,7 @@ export const useAppStore = defineStore("app", {
     ventCountdownDate: null,
     timeToVentOpen: 0,
     showPrizeVideo: false,
+    prizeVideoVariant: DEFAULT_PRIZE_VIDEO_VARIANT,
     finished: false,
     riceCost: DEFAULT_RICE_COST,
     pendingPaintExplosions: {},
@@ -620,6 +635,7 @@ export const useAppStore = defineStore("app", {
       this.ventCountdownDate = null;
       this.timeToVentOpen = 0;
       this.showPrizeVideo = false;
+      this.prizeVideoVariant = DEFAULT_PRIZE_VIDEO_VARIANT;
       this.finished = false;
       this.riceCost = DEFAULT_RICE_COST;
       this.pendingPaintExplosions = {};
@@ -668,6 +684,7 @@ export const useAppStore = defineStore("app", {
         drillInitialized: this.drillInitialized,
         ventCountdownDate: this.ventCountdownDate,
         showPrizeVideo: this.showPrizeVideo,
+        prizeVideoVariant: this.prizeVideoVariant,
         finished: this.finished,
         riceCost: this.riceCost,
         pendingPaintExplosions: this.pendingPaintExplosions,
@@ -716,6 +733,9 @@ export const useAppStore = defineStore("app", {
       this.drillInitialized = Boolean(progress.drillInitialized);
       this.ventCountdownDate = progress.ventCountdownDate ?? null;
       this.showPrizeVideo = Boolean(progress.showPrizeVideo);
+      this.prizeVideoVariant = normalizePrizeVideoVariant(
+        progress.prizeVideoVariant
+      );
       this.finished = Boolean(progress.finished);
       this.riceCost = this.normalizeRiceCost(progress.riceCost);
       this.paintStains = progress.paintStains ?? {};
@@ -1004,6 +1024,20 @@ export const useAppStore = defineStore("app", {
     },
     getShowPrizeVideo() {
       return this.showPrizeVideo;
+    },
+    getPrizeVideoVariant() {
+      return this.prizeVideoVariant;
+    },
+    getPrizeVideoSource() {
+      const variant = normalizePrizeVideoVariant(this.prizeVideoVariant);
+      return `${import.meta.env.BASE_URL}${PRIZE_VIDEO_FILES[variant]}`;
+    },
+    setPrizeVideoVariant(variant) {
+      const nextVariant = normalizePrizeVideoVariant(variant);
+      if (nextVariant == this.prizeVideoVariant) return;
+
+      this.prizeVideoVariant = nextVariant;
+      this.saveProgress();
     },
     setShowPrizeVideo(show) {
       this.showPrizeVideo = show;

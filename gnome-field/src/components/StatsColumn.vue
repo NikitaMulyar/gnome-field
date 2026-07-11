@@ -20,6 +20,7 @@
       title="Сбросить прохождение"
       @click.stop="resetProgress"
     />
+    <PrizeVideoSelector class="stats-video-selector" />
     <h1 @click="toggleFullscreen()">Подвалище</h1>
     <section class="rice-ledger">
       <div class="rice-row">
@@ -300,6 +301,13 @@ export default defineComponent({
   right: 0.72rem;
 }
 
+.stats-video-selector {
+  position: absolute;
+  top: 0.62rem;
+  right: 3.44rem;
+  z-index: 2;
+}
+
 .stats-action-button:hover {
   color: #f0bf72;
   border-color: rgba(240, 191, 114, 0.5);
@@ -312,7 +320,7 @@ export default defineComponent({
 
 .stats-column h1 {
   position: relative;
-  margin: 0 3.25rem 1rem 0;
+  margin: 0 6.2rem 1rem 0;
   color: #f0bf72;
   cursor: pointer;
   font-size: 1.8rem;
